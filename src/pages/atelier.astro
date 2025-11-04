@@ -1,0 +1,341 @@
+---
+import Layout from "../layouts/Layout.astro";
+import heroAtelierUrl from "../assets/heroatelier.png";
+import atelierImageUrl from "../assets/lunetteatelier.png";
+
+const storyParagraphs = [
+    "TaVue est n&eacute;e d&rsquo;une vision simple : rendre accessible la lunetterie artisanale fran&ccedil;aise &agrave; tous ceux qui recherchent l&rsquo;excellence.",
+    "Notre atelier situ&eacute; en Bretagne r&eacute;unit des artisans passionn&eacute;s qui fa&ccedil;onnent chaque paire avec le m&ecirc;me soin qu&rsquo;une &oelig;uvre d&rsquo;art.",
+    "Nous croyons que vos lunettes doivent raconter votre histoire, refl&eacute;ter votre personnalit&eacute; et vous accompagner fid&egrave;lement au quotidien.",
+];
+
+const atelierValues = [
+    {
+        title: "Savoir-faire fran&ccedil;ais",
+        description:
+            "Nos artisans perp&eacute;tuent une tradition d&rsquo;excellence depuis plus de 30 ans.",
+    },
+    {
+        title: "Mat&eacute;riaux nobles",
+        description:
+            "Ac&eacute;tate italien, bois de France, titane japonais, or &eacute;thique.",
+    },
+    {
+        title: "Personnalisation totale",
+        description:
+            "Chaque paire est unique, fa&ccedil;onn&eacute;e selon vos go&ucirc;ts et votre morphologie.",
+    },
+    {
+        title: "Engagement durable",
+        description:
+            "Production raisonn&eacute;e, mat&eacute;riaux durables, r&eacute;paration &agrave; vie.",
+    },
+];
+
+const processSteps = [
+    {
+        title: "Conception",
+        description:
+            "Chaque paire est imagin&eacute;e avec soin, en tenant compte de vos pr&eacute;f&eacute;rences et de votre morphologie.",
+    },
+    {
+        title: "S&eacute;lection des mat&eacute;riaux",
+        description:
+            "Nous s&eacute;lectionnons uniquement des mat&eacute;riaux nobles : ac&eacute;tate italien, bois fran&ccedil;ais, titane japonais.",
+    },
+    {
+        title: "Fabrication artisanale",
+        description:
+            "Nos artisans fa&ccedil;onnent chaque monture &agrave; la main dans notre atelier en Bretagne.",
+    },
+    {
+        title: "Ajustage pr&eacute;cis",
+        description:
+            "Chaque d&eacute;tail est v&eacute;rifi&eacute; : &eacute;quilibre, confort, finitions. Rien n&rsquo;est laiss&eacute; au hasard.",
+    },
+    {
+        title: "Finition &amp; polissage",
+        description:
+            "Un polissage minutieux apporte la touche finale &agrave; votre cr&eacute;ation unique.",
+    },
+    {
+        title: "Livraison",
+        description:
+            "Votre paire est livr&eacute;e dans un &eacute;crin &eacute;l&eacute;gant, pr&ecirc;te &agrave; sublimer votre regard.",
+    },
+];
+
+const testimonials = [
+    {
+        quote: "&ldquo; Une visite d&rsquo;atelier incroyable ! Voir chaque paire se cr&eacute;er sous mes yeux fut &eacute;motionnant. &rdquo;",
+        name: "Sophie M.",
+        meta: "Il y a 2 semaines",
+    },
+    {
+        quote: "&ldquo; Le configurateur IA puis l&rsquo;atelier m&rsquo;ont permis de fa&ccedil;onner la monture parfaite pour moi. &rdquo;",
+        name: "Thomas L.",
+        meta: "Il y a 1 mois",
+    },
+    {
+        quote: "&ldquo; Accueil chaleureux, artisans passionn&eacute;s, finition impeccable. TaVue tient ses promesses. &rdquo;",
+        name: "Marie D.",
+        meta: "Il y a 3 semaines",
+    },
+];
+
+const ctaBenefits = [
+    "Visite guid&eacute;e compl&egrave;te",
+    "Essayage personnalis&eacute;",
+    "Conseils d&rsquo;experts",
+];
+
+const pressLogos = ["Vogue", "Le Figaro", "GQ Magazine", "Elle"];
+---
+
+<Layout>
+    
+    <section
+        class="relative isolate overflow-hidden bg-[#101418] text-[#F5EFE6]"
+    >
+        <div
+            class="absolute inset-0 -z-20 bg-cover bg-center"
+            style={`background-image: url(${heroAtelierUrl.src});`}
+            role="presentation"
+        >
+        </div>
+        <div
+            class="absolute inset-0 -z-10 bg-gradient-to-b from-black/45 via-black/55 to-[#101418]/92"
+        >
+        </div>
+        <div
+            class="absolute inset-0 -z-10 bg-gradient-to-r from-black/45 via-transparent to-black/35"
+        >
+        </div>
+
+        <div
+            class="mx-auto flex min-h-[70vh] max-w-5xl flex-col items-center justify-center px-6 py-24 text-center md:py-32"
+        >
+            <h1
+                class="mb-4 font-playfair text-4xl font-semibold text-white md:text-5xl"
+                set:html={"L&rsquo;atelier fran&ccedil;ais"}
+            />
+            <p
+                class="text-sm text-[#B7C2CC] md:text-base"
+                set:html={"D&eacute;couvrez l&rsquo;art de la lunetterie artisanale"}
+            />
+        </div>
+    </section>
+
+    <section class="bg-[#12171A] text-[#E6EBF0]">
+        <div
+            class="mx-auto flex max-w-6xl flex-col items-center gap-12 px-6 py-20 md:flex-row md:items-start md:gap-16 md:py-24"
+        >
+            <div class="w-full md:w-1/2">
+                <h2
+                    class="mb-6 font-playfair text-3xl font-semibold text-[#F6F1E8] md:text-4xl"
+                >
+                    Une histoire de passion
+                </h2>
+                <div
+                    class="space-y-4 text-sm leading-relaxed text-[#91A0AC] md:text-base"
+                >
+                    {
+                        storyParagraphs.map((paragraph, index) => (
+                            <p set:html={paragraph} set:key={index} />
+                        ))
+                    }
+                </div>
+            </div>
+            <div class="w-full md:w-1/2">
+                <div
+                    class="mx-auto max-w-md rounded-[2rem] border border-[#1F2327] bg-[#0D1013] p-4 shadow-[0_30px_60px_rgba(0,0,0,0.45)]"
+                >
+                    <img
+                        src={atelierImageUrl.src}
+                        alt="Lunettes artisanales"
+                        class="h-auto w-full rounded-[1.5rem] object-cover"
+                    />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#1A1F24] text-[#F5EFE6]">
+        <div class="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <h2
+                class="mb-14 text-center font-playfair text-4xl font-semibold text-[#F8F2E6] md:text-5xl"
+            >
+                Nos valeurs
+            </h2>
+
+            <div class="grid gap-6 md:grid-cols-2">
+                {
+                    atelierValues.map((value) => (
+                        <article
+                            class="flex items-start gap-4 rounded-3xl border border-[#2B3036] bg-[#12171A]/90 px-6 py-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+                            set:key={value.title}
+                        >
+                            <span
+                                class="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#F5D6A1] to-[#D2AC72] text-[#2E2518]"
+                                set:html={"&#10003;"}
+                            />
+                            <div>
+                                <h3
+                                    class="mb-2 text-sm font-semibold text-[#F7F1E7] md:text-base"
+                                    set:html={value.title}
+                                />
+                                <p
+                                    class="text-xs text-[#8D9AA5] md:text-sm"
+                                    set:html={value.description}
+                                />
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#12171A] text-[#F5EFE6]">
+        <div class="mx-auto max-w-4xl px-6 py-20 md:py-24">
+            <h2
+                class="mb-14 text-center font-playfair text-4xl font-semibold text-[#F8F2E6] md:text-5xl"
+                set:html={"Le processus de cr&eacute;ation"}
+            />
+
+            <div class="space-y-5">
+                {
+                    processSteps.map((step, index) => (
+                        <article
+                            class="flex items-start gap-5 rounded-3xl border border-[#2B3036] bg-[#101519]/85 px-6 py-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)] transition duration-200 hover:border-[#3C434A]"
+                            set:key={step.title}
+                        >
+                            <span class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#F1D29B] via-[#D5A76A] to-[#C18D4D] font-playfair text-xl font-semibold text-[#2C2114]">
+                                {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <div>
+                                <h3 class="mb-1 text-sm font-semibold text-[#F6F1E8] md:text-base">
+                                    {step.title}
+                                </h3>
+                                <p class="text-xs text-[#8EA0AE] md:text-sm">
+                                    {step.description}
+                                </p>
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#191E23] text-[#F5EFE6]">
+        <div class="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <h2
+                class="mb-14 text-center font-playfair text-4xl font-semibold text-[#F8F2E6] md:text-5xl"
+                set:html={"T&eacute;moignages clients"}
+            />
+
+            <div class="grid gap-8 md:grid-cols-3">
+                {
+                    testimonials.map((testimonial) => (
+                        <article
+                            class="rounded-3xl border border-[#2F353C] bg-[#0F1419]/90 p-8 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+                            set:key={testimonial.name}
+                        >
+                            <div class="mb-4 flex items-center gap-1 text-[#E3C889]">
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                    <span
+                                        class="text-sm"
+                                        set:html={"&#9733;"}
+                                        set:key={index}
+                                    />
+                                ))}
+                            </div>
+                            <p
+                                class="mb-6 text-sm text-[#80919F]"
+                                set:html={testimonial.quote}
+                            />
+                            <div class="text-xs text-[#8B97A3]">
+                                <p class="mb-1 text-sm font-semibold text-[#F5EFE6]">
+                                    {testimonial.name}
+                                </p>
+                                <p>{testimonial.meta}</p>
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#050607] text-[#1E2228]">
+        <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+            <div
+                class="rounded-[2.5rem] bg-gradient-to-br from-[#E2C48E] via-[#D6B076] to-[#C89A5E] px-8 py-12 shadow-[0_35px_70px_rgba(0,0,0,0.45)] md:px-16 md:py-16"
+            >
+                <h2
+                    class="mb-4 text-3xl font-bold text-[#1E1A14] md:text-4xl"
+                    set:html={"Plongez au c&oelig;ur de l&rsquo;atelier TaVue"}
+                />
+                <p
+                    class="mb-8 text-sm text-[#4A3E2F] md:text-base"
+                    set:html={"R&eacute;servez votre visite priv&eacute;e et vivez une exp&eacute;rience sur mesure avec nos artisans."}
+                />
+
+                <div
+                    class="flex flex-col items-center gap-4 md:flex-row md:gap-6"
+                >
+                    <div
+                        class="flex items-center gap-2 rounded-full border border-[#B68F56] bg-[#F0D7A8]/40 px-4 py-2 text-xs font-medium text-[#4E3F2D] md:text-sm"
+                    >
+                        <span class="h-2 w-2 rounded-full bg-[#B68F56]"></span>
+                        <span
+                            class="text-left"
+                            set:html={"Rendez-vous limit&eacute;s &agrave; 12 personnes par semaine."}
+                        />
+                    </div>
+                    <a
+                        href="/atelier#visite"
+                        class="inline-flex items-center justify-center gap-2 rounded-full bg-[#0F1115] px-8 py-3 text-sm font-semibold text-[#F5EFE6] shadow-[0_12px_35px_rgba(0,0,0,0.4)] transition hover:-translate-y-0.5 hover:bg-[#171A1F]"
+                    >
+                        <span set:html={"Planifier ma visite"} />
+                        <span class="text-base" set:html={"&rarr;"} />
+                    </a>
+                </div>
+
+                <ul
+                    class="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-[#6A5B45] md:justify-start"
+                >
+                    {
+                        ctaBenefits.map((benefit) => (
+                            <li
+                                class="flex items-center gap-2"
+                                set:key={benefit}
+                            >
+                                <span class="h-1 w-1 rounded-full bg-[#6A5B45]" />
+                                <span set:html={benefit} />
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-t border-[#1B1D20] bg-[#08090B] text-[#E4E1DB]">
+        <div
+            class="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 py-12 md:py-16"
+        >
+            <p
+                class="text-xs uppercase tracking-[0.4em] text-[#6F7D86]"
+                set:html={"Ils parlent de l&rsquo;atelier"}
+            />
+            <div
+                class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-lg font-playfair text-[#F3F1EC]/80 md:text-xl"
+            >
+                {pressLogos.map((logo) => <span set:key={logo}>{logo}</span>)}
+            </div>
+        </div>
+    </section>
+    
+</Layout>

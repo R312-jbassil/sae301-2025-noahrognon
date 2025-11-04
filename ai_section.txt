@@ -1,0 +1,207 @@
+    function applyAI(prompt) {
+        const lower = prompt.toLowerCase();
+        const updates = {};
+        if (lower.includes("or rose")) {
+            updates.frameMaterial = "rose-gold";
+        } else if (lower.includes("or")) {
+            updates.frameMaterial = "or";
+        } else if (lower.includes("titane")) {
+            updates.frameMaterial = "titane";
+        } else if (lower.includes("bois")) {
+            updates.frameMaterial = "bois";
+            updates.templeMaterial = "bois";
+        }
+        if (lower.includes("miroir")) {
+            updates.lensColor = "bleu-miroir";
+        } else if (lower.includes("polarise")) {
+            updates.lensColor = "vert-polarise";
+        } else if (lower.includes("fonce") || lower.includes("sombre")) {
+            updates.lensColor = "gris-fonce";
+        }
+        if (lower.includes("grand")) {
+            updates.lensSize = 8;
+        } else if (lower.includes("petit")) {
+            updates.lensSize = 3;
+        }
+        if (lower.includes("mat")) {
+            updates.finish = "mat";
+        } else if (lower.includes("satine")) {
+            updates.finish = "satin";
+        } else if (lower.includes("brillant")) {
+            updates.finish = "brillant";
+        }
+        if (Object.keys(updates).length === 0) {
+            showFeedback("Aucune suggestion trouvee", "error");
+            return;
+        }
+        if (updates.frameMaterial) {
+            const frameOption = Array.from(elements.frameSelect.options).find((option) => option.dataset.slug === updates.frameMaterial);
+            if (frameOption) {
+                updates.frameHex = frameOption.dataset.hex;
+                updates.frameMaterialId = frameOption.dataset.id || null;
+            } else {
+                const fallback = fallbackMaterials.find((m) => m.slug === updates.frameMaterial);
+                updates.frameHex = fallback ? fallback.hex : config.frameHex;
+            }
+        }
+        if (updates.templeMaterial) {
+            const templeOption = Array.from(elements.templeSelect.options).find((option) => option.dataset.slug === updates.templeMaterial);
+            if (templeOption) {
+                updates.templeHex = templeOption.dataset.hex;
+                updates.templeMaterialId = templeOption.dataset.id || null;
+            } else {
+                const fallback = fallbackMaterials.find((m) => m.slug === updates.templeMaterial);
+                updates.templeHex = fallback ? fallback.hex : config.templeHex;
+            }
+        }
+        updateConfig(updates);
+        showFeedback("Configuration generee par l'assistant");
+    }
+
+    async function persist(orderNow = false, isAuto = false) {
+        if (isSaving) return;
+        if (svgContexts.length === 0) return;
+        isSaving = true;
+        if (!isAuto) elements.saveBtn.classList.add("opacity-70", "cursor-not-allowed");
+        if (orderNow) elements.orderBtn.classList.add("opacity-70", "cursor-not-allowed");
+        try {
+            const payload = {
+                code_svg: svgToString(svgContexts[0].doc),
+                largeur_pont: config.bridgeWidth,
+                taille_verre: config.lensSize,
+                couleur_verre: config.lensColor,
+                finition: config.finish,
+                gravure: config.engraving,
+                position_gravure: config.engravingPosition,
+                style_gravure: config.engravingStyle,
+                Materiaux_monture: config.frameMaterialId,
+                Materiaux_branche: config.templeMaterialId,
+                prix_final: computeTotalPrice(),
+                orderNow,
+                userId: ${JSON.stringify(user.id)}
+            };
+            const response = await fetch("/api/save-svg", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result.ok) {
+                throw new Error(result.error || "Echec sauvegarde");
+            }
+            config.lunetteId = result.lunetteId || config.lunetteId;
+            if (!isAuto) showFeedback("Configuration sauvegardee");
+            if (orderNow && result.commandeId) {
+                window.location.href = `/commande/${result.commandeId}`;
+            } else if (orderNow) {
+                window.location.href = "/login?redirect=/configurateur";
+            }
+        } catch (error) {
+            console.error("Persist error", error);
+            if (!isAuto) showFeedback("Impossible de sauvegarder", "error");
+        } finally {
+            isSaving = false;
+            elements.saveBtn.classList.remove("opacity-70", "cursor-not-allowed");
+            elements.orderBtn.classList.remove("opacity-70", "cursor-not-allowed");
+        }
+    }
+
+    function saveLocalState() {
+        try {
+            localStorage.setItem(storageKey, encodeState(config));
+        } catch (error) {
+            console.warn("Impossible de sauvegarder l'etat local", error);
+        }
+    }
+
+    function loadLocalState() {
+        try {
+            const stored = decodeState(localStorage.getItem(storageKey));
+            if (stored) {
+                config = { ...config, ...stored };
+                applyAI(value);
+            }
+            elements.aiInput.value = "";
+            elements.aiDialog.close();
+        });
+        [elements.guideOpen, elements.guideButton].forEach((btn) => {
+            if (!btn) return;
+            btn.addEventListener("click", () => {
+                if (typeof elements.guideDialog.showModal === "function") elements.guideDialog.showModal();
+            });
+        });
+        elements.guideClose.addEventListener("click", () => elements.guideDialog.close());
+    }
+
+    function initPresetsSvg() {
+        const presetSvgs = document.querySelectorAll(".preset-svg");
+        presetSvgs.forEach((obj) => {
+            obj.addEventListener("load", () => {
+                const doc = obj.contentDocument;
+                if (!doc) return;
+                const firstPreset = presetData[0];
+                const paths = Array.from(doc.querySelectorAll("path"));
+                if (paths.length >= 6) {
+                    paths[0].setAttribute("fill", firstPreset.frameHex);
+                }
+            });
+        });
+    }
+
+    function initialiseSvgObservers() {
+        const attach = (object) => {
+            if (!object) return;
+            if (object.contentDocument) {
+                registerSvg(object.contentDocument);
+            } else {
+                object.addEventListener("load", () => registerSvg(object.contentDocument));
+            }
+        };
+        attach(elements.svg);
+        attach(elements.zoomSvg);
+    }
+
+    function init() {
+        loadLocalState();
+        setActivePanel("materials");
+        updateStepIndicators();
+        renderPresets();
+        render();
+        initEvents();
+        initialiseSvgObservers();
+        loadMaterials().then(() => render());
+        updateLensSwatches();
+        initPresetsSvg();
+    }
+
+    init();
+</script>
+
+<style>
+    input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 9999px;
+        background-color: #d1b17a;
+        border: none;
+        box-shadow: 0 0 0 2px #20252b;
+        cursor: pointer;
+    }
+
+    input[type='range']::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 9999px;
+        background-color: #d1b17a;
+        border: none;
+        box-shadow: 0 0 0 2px #20252b;
+        cursor: pointer;
+    }
+
+    dialog::backdrop {
+        background: rgba(9, 10, 12, 0.75);
+    }
+</style>
+</Layout>

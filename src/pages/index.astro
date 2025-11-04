@@ -1,11 +1,281 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import badgeIcon from "../assets/badge.svg";
+import colisIcon from "../assets/colis.svg";
+import etoileIcon from "../assets/etoile.svg";
+import clientIcon from "../assets/client.svg";
+import tempsIcon from "../assets/temps.svg";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const heroFeatures = [
+    { icon: badgeIcon, title: "Garantie", subtitle: "2 ans" },
+    { icon: colisIcon, title: "Livraison", subtitle: "7 jours" },
+    { icon: etoileIcon, title: "Note", subtitle: "4.9/5" },
+    { icon: clientIcon, title: "+2500", subtitle: "Clients" },
+];
+
+const processSteps = [
+    {
+        step: "01",
+        title: "Personnalisez",
+        description:
+            "Choisissez les mat&eacute;riaux, les dimensions et le style de vos lunettes avec notre configurateur ou notre IA.",
+    },
+    {
+        step: "02",
+        title: "Validez",
+        description:
+            "Visualisez votre cr&eacute;ation en temps r&eacute;el et ajustez jusqu&rsquo;&agrave; obtenir la paire parfaite.",
+    },
+    {
+        step: "03",
+        title: "Recevez",
+        description:
+            "Votre paire est fabriqu&eacute;e en France par nos artisans et livr&eacute;e chez vous sous 7 jours.",
+    },
+];
+
+const testimonials = [
+    {
+        quote: "&ldquo; Une qualit&eacute; exceptionnelle ! La gravure personnalis&eacute;e ajoute une touche unique. Je recommande vivement. &rdquo;",
+        name: "Sophie L.",
+        location: "Paris",
+    },
+    {
+        quote: "&ldquo; Lunettes parfaites, finition impeccable. Le service client est aux petits soins. Livraison en 6 jours. &rdquo;",
+        name: "Marc D.",
+        location: "Lyon",
+    },
+    {
+        quote: "&ldquo; J&rsquo;adore le configurateur avec l&rsquo;IA ! Ma paire en or rose et bois est sublime. Un vrai bijou. &rdquo;",
+        name: "Isabelle M.",
+        location: "Bordeaux",
+    },
+];
+
+const ctaBenefits = ["Essai virtuel", "Retour gratuit 30j", "Garantie 2 ans"];
+const pressLogos = ["Vogue", "Le Figaro", "GQ Magazine", "Elle"];
 ---
 
 <Layout>
-	<Welcome />
+    <Hero />
+
+    <section class="bg-[#0F1317] text-[#F5EFE6]">
+        <div class="mx-auto max-w-6xl px-6 py-16 md:py-20">
+            <div
+                class="grid grid-cols-2 gap-12 border-y border-[#1F2429] py-12 md:grid-cols-4 md:gap-8"
+            >
+                {
+                    heroFeatures.map((item, index) => (
+                        <div
+                            class={`flex flex-col items-center text-center ${
+                                index < heroFeatures.length - 1
+                                    ? "md:border-r md:border-[#1F2429]"
+                                    : ""
+                            }`}
+                            set:key={item.title}
+                        >
+                            <img
+                                src={item.icon.src}
+                                alt=""
+                                class="mb-3 h-10 w-10"
+                            />
+                            <p class="text-sm font-semibold text-[#DABF90]">
+                                {item.title}
+                            </p>
+                            <p class="text-xs text-[#A5AEB6]">
+                                {item.subtitle}
+                            </p>
+                        </div>
+                    ))
+                }
+            </div>
+
+            <div class="py-20 md:py-24">
+                <h2
+                    class="mb-16 text-center font-playfair text-4xl font-semibold text-[#F8F2E6] md:text-5xl"
+                >
+                    Un processus simple et intuitif
+                </h2>
+
+                <div class="grid gap-12 text-center md:grid-cols-3 md:gap-8">
+                    {
+                        processSteps.map((step) => (
+                            <div
+                                class="flex flex-col items-center"
+                                set:key={step.step}
+                            >
+                                <p class="mb-4 font-playfair text-3xl text-[#DABF90]">
+                                    {step.step}
+                                </p>
+                                <p class="mb-3 text-lg font-semibold text-[#F6F0E6]">
+                                    {step.title}
+                                </p>
+                                <p
+                                    class="max-w-xs text-sm text-[#7D8A96]"
+                                    set:html={step.description}
+                                ></p>
+                            </div>
+                        ))
+                    }
+                </div>
+            </div>
+
+            <div
+                class="rounded-3xl border border-[#3B3227] bg-gradient-to-r from-[#1A1A1A]/80 via-[#1D1A16]/70 to-[#1A1A1A]/80 px-6 py-6 shadow-[0_14px_45px_rgba(0,0,0,0.45)] md:px-10 md:py-8"
+            >
+                <div
+                    class="flex flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-left"
+                >
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-[#DABF90]/60 bg-[#2B251C]/60"
+                        >
+                            <img src={tempsIcon.src} alt="" class="h-6 w-6" />
+                        </div>
+                        <div>
+                            <p
+                                class="text-sm font-semibold uppercase tracking-[0.35em] text-[#DABF90]"
+                                set:html={'Production artisanale limit&eacute;e'}
+                            ></p>
+                            <p
+                                class="hidden text-xs text-[#87919C] md:block"
+                                set:html={'Seulement <span class="text-[#E3C889]">23 cr&eacute;neaux</span> disponibles ce mois-ci. Chaque paire n&eacute;cessite 4 heures de travail manuel de nos ma&icirc;tres lunetiers.'}
+                            ></p>
+                        </div>
+                    </div>
+                    <p
+                        class="text-xs text-[#87919C] md:hidden"
+                        set:html={'Seulement <span class="text-[#E3C889]">23 cr&eacute;neaux</span> disponibles ce mois-ci. Chaque paire n&eacute;cessite 4 heures de travail manuel de nos ma&icirc;tres lunetiers.'}
+                    ></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#12161B] text-[#F5EFE6]">
+        <div class="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <h2
+                class="mb-14 text-center font-playfair text-4xl font-semibold text-[#F8F2E6] md:text-5xl"
+            >
+                Ils nous font confiance
+            </h2>
+
+            <div class="grid gap-8 md:grid-cols-3">
+                {
+                    testimonials.map((testimonial) => (
+                        <article
+                            class="rounded-3xl border border-[#262C33] bg-[#101418]/95 p-8 shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+                            set:key={testimonial.name}
+                        >
+                            <div class="mb-4 flex items-center gap-1 text-[#E3C889]">
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                    <img
+                                        src={etoileIcon.src}
+                                        alt=""
+                                        class="h-4 w-4"
+                                        set:key={index}
+                                    />
+                                ))}
+                            </div>
+                            <p
+                                class="mb-6 text-sm text-[#80919F]"
+                                set:html={testimonial.quote}
+                            ></p>
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#F8E7C7] to-[#D7B47D] text-xs font-semibold text-[#312A1F]">
+                                    {testimonial.name.slice(0, 1)}
+                                </span>
+                                <div class="text-left">
+                                    <p class="text-sm font-semibold text-[#F5EFE6]">
+                                        {testimonial.name}
+                                    </p>
+                                    <p class="text-xs text-[#8B97A3]">
+                                        {testimonial.location}
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+
+            <div class="mt-10 flex justify-center">
+                <div
+                    class="inline-flex items-center gap-2 rounded-full border border-[#343A40] bg-[#1A1F24] px-4 py-2 text-xs font-medium text-[#D8C28F] shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+                >
+                    <span class="text-sm" set:html={'&#9733;'}></span>
+                    <span set:html={'Note moyenne : 4.9/5 bas&eacute;e sur 847 avis'}></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#050607] text-[#1E2228]">
+        <div class="mx-auto max-w-5xl px-6 py-20 md:py-24">
+            <div
+                class="rounded-[2.5rem] bg-gradient-to-br from-[#E2C48E] via-[#D6B076] to-[#C89A5E] px-8 py-12 shadow-[0_35px_70px_rgba(0,0,0,0.45)] md:px-16 md:py-16"
+            >
+                <h2
+                    class="mb-4 text-3xl font-bold text-[#1E1A14] md:text-4xl"
+                    set:html={'Pr&ecirc;t &agrave; cr&eacute;er votre paire unique ?'}
+                ></h2>
+                <p
+                    class="mb-8 text-sm text-[#4A3E2F] md:text-base"
+                    set:html={'Rejoignez les <span class="font-semibold">2&nbsp;500+ clients satisfaits</span> qui portent d&eacute;j&agrave; du TaVue.'}
+                ></p>
+
+                <div
+                    class="flex flex-col items-center gap-4 md:flex-row md:gap-6"
+                >
+                    <div
+                        class="flex items-center gap-2 rounded-full border border-[#B68F56] bg-[#F0D7A8]/40 px-4 py-2 text-xs font-medium text-[#4E3F2D] md:text-sm"
+                    >
+                        <img src={tempsIcon.src} alt="" class="h-4 w-4" />
+                        <span
+                            set:html={'Gravure offerte expire dans <span class="font-semibold text-[#2F2316]">7 jours</span>'}
+                        ></span>
+                    </div>
+                    <a
+                        href="/configurateur"
+                        class="inline-flex items-center justify-center gap-2 rounded-full bg-[#0F1115] px-8 py-3 text-sm font-semibold text-[#F5EFE6] shadow-[0_12px_35px_rgba(0,0,0,0.4)] transition hover:-translate-y-0.5 hover:bg-[#171A1F]"
+                    >
+                        Commencer maintenant
+                        <span class="text-base" set:html={'&rarr;'}></span>
+                    </a>
+                </div>
+
+                <ul
+                    class="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-[#6A5B45] md:justify-start"
+                >
+                    {
+                        ctaBenefits.map((benefit) => (
+                            <li
+                                class="flex items-center gap-2"
+                                set:key={benefit}
+                            >
+                                <span class="h-1 w-1 rounded-full bg-[#6A5B45]" />
+                                {benefit}
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-t border-[#1B1D20] bg-[#08090B] text-[#E4E1DB]">
+        <div
+            class="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 py-12 md:py-16"
+        >
+            <p class="text-xs uppercase tracking-[0.4em] text-[#6F7D86]">
+                Ils parlent de nous
+            </p>
+            <div
+                class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-lg font-playfair text-[#F3F1EC]/80 md:text-xl"
+            >
+                {pressLogos.map((logo) => <span set:key={logo}>{logo}</span>)}
+            </div>
+        </div>
+    </section>
 </Layout>

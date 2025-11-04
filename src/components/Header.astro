@@ -1,0 +1,58 @@
+﻿---
+import logoUrl from '../assets/logo.svg';
+import soleilUrl from '../assets/soleil.svg';
+import usersUrl from '../assets/users.svg';
+
+const navLinks = [
+	{ href: '/', label: 'Accueil', current: true },
+	{ href: '/configurateur', label: 'Configurateur', current: false },
+	{ href: '/mes-creations', label: 'Mes créations', current: false },
+	{ href: '/atelier', label: 'Atelier', current: false },
+	{ href: '/mon-compte', label: 'Mon compte', current: false }
+];
+---
+
+<header class="border-b border-[#2A2A2A] bg-[#1F1F1F] text-[#CFCAC2]">
+	<div class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4 md:px-10">
+		<a href="/" class="flex items-center gap-3" aria-label="TaVue Accueil">
+			<span class="inline-flex">
+				<img src={logoUrl.src} alt="TaVue" class="h-12 w-auto" loading="lazy" />
+			</span>
+			<span class="sr-only">TaVue</span>
+		</a>
+
+		<nav class="hidden items-center gap-9 text-sm font-medium md:flex" aria-label="Navigation principale">
+			{navLinks.map((link) => (
+				<a
+					href={link.href}
+					aria-current={link.current ? 'page' : undefined}
+					class={`relative pb-3 transition-colors duration-200 ${
+						link.current ? 'text-[#E8E2D8] font-semibold' : 'text-[#5F6A73] hover:text-[#E8E2D8]'
+					}`}
+				>
+					{link.label}
+					{link.current && (
+						<span class="absolute left-0 bottom-0 h-0.5 w-full rounded-full bg-[#E0C38E]"></span>
+					)}
+				</a>
+			))}
+		</nav>
+
+		<div class="flex items-center gap-5 text-[#D8B87C]">
+			<button
+				type="button"
+				class="rounded-full p-2 transition-transform duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D1B17A]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F1F]"
+				aria-label="Basculer le th&egrave;me"
+			>
+				<img src={soleilUrl.src} alt="" class="h-5 w-5" loading="lazy" />
+			</button>
+			<button
+				type="button"
+				class="rounded-full p-2 transition-transform duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D1B17A]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F1F]"
+				aria-label="Mon compte"
+			>
+				<img src={usersUrl.src} alt="" class="h-5 w-5" loading="lazy" />
+			</button>
+		</div>
+	</div>
+</header>
