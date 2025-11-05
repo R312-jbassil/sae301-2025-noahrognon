@@ -33,7 +33,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22008
         source: "dist/*"
-        target: "/var/www/tavue/"
+        target: "/var/www/lunette/"
         strip_components: 1
         rm: false
         overwrite: true
@@ -46,8 +46,8 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22008
         script: |
-          cd /var/www/tavue/server
+          cd /var/www/lunette/server
           npm ci
           npm install astro
           npm install send server-destroy
-          PORT=8092 pm2 restart tavue || PORT=8092 pm2 start entry.mjs --name tavue
+          PORT=8084 pm2 restart lunette || PORT=8084 pm2 start entry.mjs --name lunette

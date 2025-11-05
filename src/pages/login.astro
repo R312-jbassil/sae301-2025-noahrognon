@@ -214,8 +214,6 @@ import loginImageUrl from "../assets/loginimage.png";
 </Layout>
 
 <script type="module">
-	import pb from "../utils/pb.js";
-
 	const form = document.querySelector("#login-form");
 	const feedback = document.querySelector("#login-feedback");
 	const submitButton = form?.querySelector('button[type="submit"]');
@@ -252,26 +250,6 @@ import loginImageUrl from "../assets/loginimage.png";
 		button.setAttribute("aria-busy", isLoading ? "true" : "false");
 	}
 
-	async function syncSession() {
-		try {
-			const token = pb.authStore.token;
-			const model = pb.authStore.model;
-			if (!token || !model) return false;
-			const response = await fetch("/besoin/auth/session", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token, model }),
-			});
-			if (!response.ok) {
-				throw new Error("session-sync-failed");
-			}
-			return true;
-		} catch (error) {
-			console.error("Session sync failed:", error);
-			return false;
-		}
-	}
-
 	if (urlError) {
 		showFeedback(urlError);
 	}
@@ -306,8 +284,17 @@ import loginImageUrl from "../assets/loginimage.png";
 			setLoading(submitButton, true);
 
 			try {
-				await pb.collection("users").authWithPassword(email, password);
-				await syncSession();
+				const response = await fetch("/besoin/auth/login", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ email, password })
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data?.error ?? "Identifiants invalides.");
+				}
 
 				showFeedback("Connexion reussie. Redirection...", "success");
 				setTimeout(() => {
@@ -315,15 +302,12 @@ import loginImageUrl from "../assets/loginimage.png";
 				}, 600);
 			} catch (error) {
 				const message =
-					error?.message ?? "Echec de la connexion. Veuillez verifier vos identifiants.";
+					error?.message ??
+					"Echec de la connexion. Veuillez verifier vos identifiants.";
 				showFeedback(message);
 			} finally {
 				setLoading(submitButton, false);
 			}
 		});
-	}
-
-	if (pb.authStore.isValid) {
-		syncSession();
 	}
 </script>
