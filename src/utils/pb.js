@@ -12,7 +12,7 @@ export const resolvePocketBaseUrl = () => {
 	}
 
 	// En production → PocketBase VPS
-	return 'http://localhost:8091';
+	return 'https://tavue.noahrognon.fr:443';
 };
 
 export const createPocketBase = () => {
