@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { handleAuthFromCookies, splitCookieHeader } from '../../utils/auth.js';
+import { applyCookies, handleAuthFromCookies } from '../../utils/auth.js';
 
 export const prerender = false;
 
@@ -29,12 +29,13 @@ async function resolveMaterialId(
 	}
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
 	const { pb, authCookie } = await handleAuthFromCookies(request);
-	const headers = new Headers({ 'Content-Type': 'application/json' });
 	if (authCookie) {
-		splitCookieHeader(authCookie).forEach((cookie) => headers.append('Set-Cookie', cookie));
+		applyCookies(cookies, authCookie);
 	}
+
+	const headers = { 'Content-Type': 'application/json' };
 
 	if (!pb?.authStore?.isValid || !pb.authStore.model?.id) {
 		return new Response(JSON.stringify({ ok: false, error: 'not-authenticated' }), {

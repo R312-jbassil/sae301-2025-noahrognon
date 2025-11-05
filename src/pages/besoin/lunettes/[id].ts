@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { handleAuthFromCookies, splitCookieHeader } from '../../../utils/auth.js';
+import { applyCookies, handleAuthFromCookies } from '../../../utils/auth.js';
 
 export const prerender = false;
 
@@ -14,13 +14,14 @@ const slugify = (value: string | null | undefined) =>
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
 
-export const GET: APIRoute = async ({ params, request }) => {
+export const GET: APIRoute = async ({ params, request, cookies }) => {
 	const { id } = params;
 	const { pb, authCookie } = await handleAuthFromCookies(request);
-	const headers = new Headers({ 'Content-Type': 'application/json' });
 	if (authCookie) {
-		splitCookieHeader(authCookie).forEach((cookie) => headers.append('Set-Cookie', cookie));
+		applyCookies(cookies, authCookie);
 	}
+
+	const headers = { 'Content-Type': 'application/json' };
 
 	if (!id) {
 		return new Response(JSON.stringify({ ok: false, error: 'missing-id' }), {

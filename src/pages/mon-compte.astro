@@ -1,15 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { handleAuthFromCookies, splitCookieHeader } from "../utils/auth.js";
+import { applyCookies, handleAuthFromCookies } from "../utils/auth.js";
 
 export const prerender = false;
 
 const { pb, authCookie } = await handleAuthFromCookies(Astro.request);
 
 if (authCookie) {
-	for (const cookie of splitCookieHeader(authCookie)) {
-		Astro.response.headers.append("Set-Cookie", cookie);
-	}
+	applyCookies(Astro.cookies, authCookie);
 }
 
 if (!pb.authStore?.isValid || !pb.authStore.model) {

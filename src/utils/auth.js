@@ -67,6 +67,70 @@ export const splitCookieHeader = (cookieString) =>
 		.map((entry) => entry.trim())
 		.filter(Boolean)
 
+const parseAttribute = (segment) => {
+	const [rawKey, ...rawValueParts] = segment.split('=')
+	const key = rawKey.trim().toLowerCase()
+	const value = rawValueParts.join('=').trim()
+	return { key, value }
+}
+
+export const parseSetCookie = (cookieEntry) => {
+	if (!cookieEntry) return null
+	const segments = cookieEntry.split(';').map((seg) => seg.trim()).filter(Boolean)
+	if (segments.length === 0) return null
+
+	const [nameValue, ...rest] = segments
+	const eqIdx = nameValue.indexOf('=')
+	if (eqIdx === -1) return null
+
+	const name = nameValue.slice(0, eqIdx)
+	const value = nameValue.slice(eqIdx + 1)
+	const options = {}
+
+	for (const segment of rest) {
+		const { key, value: attrValue } = parseAttribute(segment)
+		switch (key) {
+			case 'path':
+				options.path = attrValue || '/'
+				break
+			case 'domain':
+				options.domain = attrValue || undefined
+				break
+			case 'expires': {
+				const date = new Date(attrValue)
+				if (!Number.isNaN(date.valueOf())) options.expires = date
+				break
+			}
+			case 'max-age':
+				options.maxAge = Number(attrValue) || undefined
+				break
+			case 'samesite':
+				options.sameSite = attrValue ? attrValue.toLowerCase() : undefined
+				break
+			case 'secure':
+				options.secure = true
+				break
+			case 'httponly':
+				options.httpOnly = true
+				break
+			default:
+				break
+		}
+	}
+
+	return { name, value, options }
+}
+
+export const applyCookies = (cookies, cookieString) => {
+	if (!cookies || !cookieString) return
+	for (const entry of splitCookieHeader(cookieString)) {
+		const parsed = parseSetCookie(entry)
+		if (parsed) {
+			cookies.set(parsed.name, parsed.value, parsed.options)
+		}
+	}
+}
+
 export const handleAuthFromCookies = async (request) => {
 	const client = createClient()
 	const cookie = request.headers.get('cookie') ?? ''
