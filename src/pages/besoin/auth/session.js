@@ -25,12 +25,13 @@ export const GET = async ({ request }) => {
 
 	const refreshedCookie = authCookie ?? exportAuthCookie(pb)
 
+	const headers = new Headers({ 'Content-Type': 'application/json' })
+	const cookieParts = refreshedCookie ? refreshedCookie.split(/\r?\n/).filter(Boolean) : []
+	cookieParts.forEach((c) => headers.append('Set-Cookie', c))
+
 	return new Response(JSON.stringify({ user: pb.authStore.model }), {
 		status: 200,
-		headers: {
-			'Content-Type': 'application/json',
-			'Set-Cookie': refreshedCookie
-		}
+		headers
 	})
 }
 

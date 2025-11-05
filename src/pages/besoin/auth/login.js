@@ -31,12 +31,14 @@ export const POST = async ({ request }) => {
 		const authData = await pb.collection('users').authWithPassword(email, password)
 		const cookie = exportAuthCookie(pb)
 
+		// Build headers and append Set-Cookie entries safely (support multi-line)
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		const cookieParts = cookie ? cookie.split(/\r?\n/).filter(Boolean) : []
+		cookieParts.forEach((c) => headers.append('Set-Cookie', c))
+
 		return new Response(JSON.stringify({ user: authData.record }), {
 			status: 200,
-			headers: {
-				'Content-Type': 'application/json',
-				'Set-Cookie': cookie
-			}
+			headers
 		})
 	} catch (error) {
 		console.error('Login failed:', error)

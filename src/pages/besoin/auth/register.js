@@ -63,12 +63,13 @@ export const POST = async ({ request }) => {
 		const authData = await pb.collection('users').authWithPassword(email, password)
 		const cookie = exportAuthCookie(pb)
 
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		const cookieParts = cookie ? cookie.split(/\r?\n/).filter(Boolean) : []
+		cookieParts.forEach((c) => headers.append('Set-Cookie', c))
+
 		return new Response(JSON.stringify({ user: authData.record }), {
 			status: 201,
-			headers: {
-				'Content-Type': 'application/json',
-				'Set-Cookie': cookie
-			}
+			headers
 		})
 	} catch (error) {
 		console.error('Register failed:', error)
