@@ -1,18 +1,18 @@
 import PocketBase from 'pocketbase';
 
-const DEFAULT_DEV_URL = 'http://127.0.0.1:8090';
-const DEFAULT_PROD_URL = 'http://127.0.0.1:8091';
-
 export const resolvePocketBaseUrl = () => {
+	// Si PUBLIC_PB_URL est définie, on la prend en priorité
 	if (import.meta.env.PUBLIC_PB_URL) {
 		return import.meta.env.PUBLIC_PB_URL;
 	}
 
+	// En développement → PocketBase local
 	if (import.meta.env.MODE === 'development') {
-		return DEFAULT_DEV_URL;
+		return 'http://localhost:8090';
 	}
 
-	return DEFAULT_PROD_URL;
+	// En production → PocketBase VPS
+	return 'http://localhost:8091';
 };
 
 export const createPocketBase = () => {
@@ -21,5 +21,4 @@ export const createPocketBase = () => {
 };
 
 const pb = createPocketBase();
-
 export default pb;

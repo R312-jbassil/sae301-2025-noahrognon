@@ -555,7 +555,7 @@ const hasCreations = creations.length > 0;
 					button.innerHTML = 'En cours...';
 
 					try {
-						const response = await fetch('/api/order-existing', {
+						const response = await fetch('/besoin/order-existing', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({ lunetteId: entry.id })
