@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro';
-import { handleAuthFromCookies } from '../../utils/auth.js';
+import { handleAuthFromCookies, splitCookieHeader } from '../../utils/auth.js';
 
 export const prerender = false;
 
 const headersWithCookie = (cookie: string | null) => {
 	const headers = new Headers({ 'Content-Type': 'application/json' });
 	if (cookie) {
-		headers.set('Set-Cookie', cookie);
+		splitCookieHeader(cookie).forEach((entry) => headers.append('Set-Cookie', entry));
 	}
 	return headers;
 };

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { handleAuthFromCookies } from '../../utils/auth.js';
+import { handleAuthFromCookies, splitCookieHeader } from '../../utils/auth.js';
 
 export const prerender = false;
 
@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
 	const { pb, authCookie } = await handleAuthFromCookies(request);
 	const headers = new Headers({ 'Content-Type': 'application/json' });
 	if (authCookie) {
-		headers.set('Set-Cookie', authCookie);
+		splitCookieHeader(authCookie).forEach((cookie) => headers.append('Set-Cookie', cookie));
 	}
 
 	if (!pb?.authStore?.isValid || !pb.authStore.model?.id) {

@@ -2,6 +2,7 @@ import {
 	handleAuthFromCookies,
 	exportAuthCookie,
 	clearAuthCookie,
+	resolveCookieDomain,
 	splitCookieHeader
 } from '../../../utils/auth.js'
 import PocketBase from 'pocketbase'
@@ -12,18 +13,18 @@ export const prerender = false
 const createClient = () => new PocketBase(PB_BASE_URL)
 
 export const GET = async ({ request }) => {
-	const { pb, authCookie } = await handleAuthFromCookies(request)
+	const { pb, authCookie, cookieDomain } = await handleAuthFromCookies(request)
 
 	if (!pb.authStore?.isValid || !pb.authStore.model) {
 		const headers = new Headers({ 'Content-Type': 'application/json' })
-		splitCookieHeader(clearAuthCookie()).forEach((c) => headers.append('Set-Cookie', c))
+		splitCookieHeader(clearAuthCookie(cookieDomain)).forEach((c) => headers.append('Set-Cookie', c))
 		return new Response(JSON.stringify({ user: null }), {
 			status: 200,
 			headers
 		})
 	}
 
-	const refreshedCookie = authCookie ?? exportAuthCookie(pb)
+	const refreshedCookie = authCookie ?? exportAuthCookie(pb, cookieDomain)
 	const headers = new Headers({ 'Content-Type': 'application/json' })
 	splitCookieHeader(refreshedCookie).forEach((c) => headers.append('Set-Cookie', c))
 
@@ -50,7 +51,8 @@ export const POST = async ({ request }) => {
 			throw new Error('invalid-token')
 		}
 
-		const cookie = exportAuthCookie(pb)
+		const domain = resolveCookieDomain(request)
+		const cookie = exportAuthCookie(pb, domain)
 		const headers = new Headers({ 'Content-Type': 'application/json' })
 		splitCookieHeader(cookie).forEach((c) => headers.append('Set-Cookie', c))
 
@@ -60,8 +62,9 @@ export const POST = async ({ request }) => {
 		})
 	} catch (error) {
 		console.error('session post error', error)
+		const domain = resolveCookieDomain(request)
 		const headers = new Headers({ 'Content-Type': 'application/json' })
-		splitCookieHeader(clearAuthCookie()).forEach((c) => headers.append('Set-Cookie', c))
+		splitCookieHeader(clearAuthCookie(domain)).forEach((c) => headers.append('Set-Cookie', c))
 		return new Response(JSON.stringify({ ok: false, error: 'invalid-session' }), {
 			status: 401,
 			headers

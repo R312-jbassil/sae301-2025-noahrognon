@@ -1,18 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { handleAuthFromCookies } from "../utils/auth.js";
+import { handleAuthFromCookies, splitCookieHeader } from "../utils/auth.js";
 
 export const prerender = false;
 
 const { pb, authCookie } = await handleAuthFromCookies(Astro.request);
 
 if (authCookie) {
-	// authCookie may contain multiple newline-separated cookie strings — append each
-	const parts = authCookie.split(/\r?\n/).filter(Boolean);
-	if (parts.length > 1) {
-		parts.forEach((c) => Astro.response.headers.append("Set-Cookie", c));
-	} else {
-		Astro.response.headers.set("Set-Cookie", authCookie);
+	for (const cookie of splitCookieHeader(authCookie)) {
+		Astro.response.headers.append("Set-Cookie", cookie);
 	}
 }
 

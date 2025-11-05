@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase'
-import { exportAuthCookie, splitCookieHeader } from '../../../utils/auth.js'
+import { exportAuthCookie, resolveCookieDomain, splitCookieHeader } from '../../../utils/auth.js'
 import { PB_BASE_URL } from '../../../utils/pb.js'
 
 export const prerender = false
@@ -61,7 +61,8 @@ export const POST = async ({ request }) => {
 		})
 
 		const authData = await pb.collection('users').authWithPassword(email, password)
-		const cookie = exportAuthCookie(pb)
+		const domain = resolveCookieDomain(request)
+		const cookie = exportAuthCookie(pb, domain)
 		const headers = new Headers()
 		splitCookieHeader(cookie).forEach((c) => headers.append('Set-Cookie', c))
 
