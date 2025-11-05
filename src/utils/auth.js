@@ -1,9 +1,12 @@
-import { createPocketBase } from './pb.js';
+import PocketBase from 'pocketbase'
+import baseClient from './pb.js'
 
-const SECURE_COOKIE = import.meta.env.MODE !== 'development';
+const SECURE_COOKIE = import.meta.env.MODE !== 'development'
 
-export const AUTH_COOKIE_NAME = 'pb_auth';
-export const OAUTH_COOKIE_NAME = 'pb_oauth_state';
+export const AUTH_COOKIE_NAME = 'pb_auth'
+export const OAUTH_COOKIE_NAME = 'pb_oauth_state'
+
+const createClient = () => new PocketBase(baseClient.baseUrl)
 
 export const exportAuthCookie = (pb) =>
 	pb
@@ -14,41 +17,36 @@ export const exportAuthCookie = (pb) =>
 				sameSite: 'lax',
 				path: '/'
 		  })
-		: '';
+		: ''
 
 export const clearAuthCookie = () =>
-	`${AUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; ${
-		SECURE_COOKIE ? 'Secure; ' : ''
-	}HttpOnly`;
+	${AUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; HttpOnly
 
 export const exportOAuthStateCookie = (value) => {
-	const encoded = encodeURIComponent(JSON.stringify(value));
-	return `${OAUTH_COOKIE_NAME}=${encoded}; Path=/; SameSite=Lax; ${
-		SECURE_COOKIE ? 'Secure; ' : ''
-	}HttpOnly; Max-Age=${60 * 10}`;
-};
+	const encoded = encodeURIComponent(JSON.stringify(value))
+	return ${OAUTH_COOKIE_NAME}=; Path=/; SameSite=Lax; HttpOnly; Max-Age=
+}
 
 export const clearOAuthStateCookie = () =>
-	`${OAUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; ${
-		SECURE_COOKIE ? 'Secure; ' : ''
-	}HttpOnly`;
+	${OAUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; HttpOnly
 
 export const handleAuthFromCookies = async (request) => {
-	const pb = createPocketBase();
-	const cookie = request.headers.get('cookie') ?? '';
-	pb.authStore.loadFromCookie(cookie, AUTH_COOKIE_NAME);
+	const pb = createClient()
+	const cookie = request.headers.get('cookie') ?? ''
+	pb.authStore.loadFromCookie(cookie, AUTH_COOKIE_NAME)
 
-	let authCookie = null;
+	let authCookie = null
 
 	try {
 		if (pb.authStore.isValid) {
-			await pb.collection('users').authRefresh();
-			authCookie = exportAuthCookie(pb);
+			await pb.collection('users').authRefresh()
+			authCookie = exportAuthCookie(pb)
 		}
 	} catch {
-		pb.authStore.clear();
-		authCookie = clearAuthCookie();
+		pb.authStore.clear()
+		authCookie = clearAuthCookie()
 	}
 
-	return { pb, authCookie };
-};
+	return { pb, authCookie }
+}
+
