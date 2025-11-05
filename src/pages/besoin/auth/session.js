@@ -6,12 +6,11 @@ import {
 	applyCookies,
 	splitCookieHeader
 } from '../../../utils/auth.js'
-import PocketBase from 'pocketbase'
-import { PB_BASE_URL } from '../../../utils/pb.js'
+import { createPocketBaseClient } from '../../../utils/pb.js'
 
 export const prerender = false
 
-const createClient = () => new PocketBase(PB_BASE_URL)
+const createClient = () => createPocketBaseClient()
 
 export const GET = async ({ request, cookies }) => {
 	const { pb, authCookie, cookieConfig } = await handleAuthFromCookies(request)
@@ -57,7 +56,7 @@ export const POST = async ({ request, cookies }) => {
 
 		if (!pb.authStore.isValid) {
 			throw new Error('invalid-token')
-	}
+		}
 
 		const config = resolveCookieConfig(request)
 		const cookie = exportAuthCookie(pb, config)

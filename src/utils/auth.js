@@ -1,17 +1,13 @@
-import PocketBase from 'pocketbase'
-import { PB_BASE_URL } from './pb.js'
-
-const isProduction = import.meta.env.MODE !== 'development'
-const DEFAULT_COOKIE_DOMAIN = 'lunette.noahrognon.fr'
+import { createPocketBaseClient } from './pb.js'
 
 export const AUTH_COOKIE_NAME = 'pb_auth'
 export const OAUTH_COOKIE_NAME = 'pb_oauth_state'
+export const AUTH_REFRESH_COOKIE_NAME = 'pb_auth_refresh'
 
-const createClient = () => new PocketBase(PB_BASE_URL)
+const createClient = () => createPocketBaseClient()
 
 const ensureHeadersPolyfill = () => {
 	if (typeof Headers === 'undefined') return
-
 	const proto = Headers.prototype
 	if (typeof proto.getSetCookie === 'function') return
 
@@ -28,8 +24,6 @@ const ensureHeadersPolyfill = () => {
 }
 
 ensureHeadersPolyfill()
-
-const normaliseHost = (host) => (host ? host.replace(/:\d+$/, '').toLowerCase() : undefined)
 
 const getHeader = (request, name) => {
 	if (!request || typeof request === 'string') return undefined
@@ -58,43 +52,26 @@ const detectProto = (request) => {
 }
 
 export const resolveCookieConfig = (request) => {
-	const explicitEnv = import.meta.env.PUBLIC_COOKIE_DOMAIN?.trim()?.toLowerCase() ?? null
-
 	const proto = detectProto(request)
-	const secure = proto ? proto === 'https' : isProduction
+	const secure = proto === 'https'
 	const sameSite = secure ? 'None' : 'Lax'
-
-	const forwardedHost = normaliseHost(firstHeaderToken(getHeader(request, 'x-forwarded-host')))
-	const hostHeader = normaliseHost(getHeader(request, 'host'))
-	const fallbackHost = typeof request === 'string' ? normaliseHost(request) : undefined
-
-	const rawDomain =
-		explicitEnv ??
-		(forwardedHost && forwardedHost !== 'localhost' ? forwardedHost : undefined) ??
-		(hostHeader && hostHeader !== 'localhost' ? hostHeader : undefined) ??
-		(fallbackHost && fallbackHost !== 'localhost' ? fallbackHost : undefined) ??
-		(secure ? DEFAULT_COOKIE_DOMAIN : undefined)
-
-	const domain = explicitEnv || (rawDomain && rawDomain !== 'localhost' ? rawDomain : undefined)
-
-	return { secure, sameSite, domain }
+	return { secure, sameSite }
 }
 
 export const exportAuthCookie = (client, config = resolveCookieConfig()) => {
 	if (!client) return ''
-	const { secure, sameSite, domain } = config
+	const { secure, sameSite } = config
 	return client.authStore.exportToCookie({
 		name: AUTH_COOKIE_NAME,
 		httpOnly: true,
 		secure,
 		sameSite: (sameSite ?? (secure ? 'None' : 'Lax')).toLowerCase(),
-		path: '/',
-		...(domain ? { domain } : {})
+		path: '/'
 	})
 }
 
 const formatCookie = (name, value, config, extras = []) => {
-	const { secure, sameSite, domain } = config
+	const { secure, sameSite } = config
 	const normalisedSameSite = (sameSite ?? (secure ? 'None' : 'Lax')).toLowerCase()
 	const sameSiteLabel =
 		normalisedSameSite === 'none'
@@ -104,15 +81,19 @@ const formatCookie = (name, value, config, extras = []) => {
 			: 'Lax'
 
 	const parts = [`${name}=${value}`, 'Path=/', ...extras]
-	if (domain) parts.push(`Domain=${domain}`)
 	if (secure) parts.push('Secure')
 	parts.push(`SameSite=${sameSiteLabel}`)
 	parts.push('HttpOnly')
 	return parts.join('; ') + ';'
 }
 
+const expiredExtras = ['Expires=Thu, 01 Jan 1970 00:00:00 GMT', 'Max-Age=0']
+
 export const clearAuthCookie = (config) =>
-	formatCookie(AUTH_COOKIE_NAME, '', config, ['Expires=Thu, 01 Jan 1970 00:00:00 GMT'])
+	[
+		formatCookie(AUTH_COOKIE_NAME, '', config, expiredExtras),
+		formatCookie(AUTH_REFRESH_COOKIE_NAME, '', config, expiredExtras)
+	].join('\n')
 
 export const exportOAuthStateCookie = (value, config) => {
 	const encoded = encodeURIComponent(JSON.stringify(value))
@@ -163,7 +144,12 @@ export const parseSetCookie = (cookieEntry) => {
 				break
 			}
 			case 'max-age':
-				options.maxAge = Number(attrValue) || undefined
+				if (attrValue !== '') {
+					const maxAge = Number(attrValue)
+					if (!Number.isNaN(maxAge)) {
+						options.maxAge = maxAge
+					}
+				}
 				break
 			case 'samesite':
 				options.sameSite = attrValue ? attrValue.toLowerCase() : undefined
@@ -184,7 +170,8 @@ export const parseSetCookie = (cookieEntry) => {
 
 export const applyCookies = (cookies, cookieString) => {
 	if (!cookies || !cookieString) return
-	for (const entry of splitCookieHeader(cookieString)) {
+	const entries = Array.isArray(cookieString) ? cookieString : splitCookieHeader(cookieString)
+	for (const entry of entries) {
 		const parsed = parseSetCookie(entry)
 		if (parsed) {
 			cookies.set(parsed.name, parsed.value, parsed.options)
@@ -200,15 +187,15 @@ export const handleAuthFromCookies = async (request) => {
 	const config = resolveCookieConfig(request)
 	let authCookie = null
 
-	try {
-		if (client.authStore.isValid) {
+	if (client.authStore.token) {
+		try {
 			await client.collection('users').authRefresh()
 			authCookie = exportAuthCookie(client, config)
+		} catch (error) {
+			console.error('authRefresh failed', error)
+			client.authStore.clear()
+			authCookie = clearAuthCookie(config)
 		}
-	} catch (error) {
-		console.error('Auth refresh failed:', error)
-		client.authStore.clear()
-		authCookie = clearAuthCookie(config)
 	}
 
 	return { pb: client, authCookie, cookieConfig: config }
