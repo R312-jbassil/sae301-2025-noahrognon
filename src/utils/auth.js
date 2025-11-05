@@ -1,6 +1,26 @@
 import PocketBase from 'pocketbase'
 import { PB_BASE_URL } from './pb.js'
 
+const ensureHeadersPolyfill = () => {
+	if (typeof Headers === 'undefined') return
+
+	const proto = Headers.prototype
+	if (typeof proto.getSetCookie === 'function') return
+
+	proto.getSetCookie = function () {
+		const header = this.get('set-cookie')
+		if (!header) return []
+		if (Array.isArray(header)) return header
+		return header
+			.split(/\r?\n/)
+			.flatMap((line) => line.split(/,(?=\s*[A-Za-z0-9-_]+=)/))
+			.map((item) => item.trim())
+			.filter(Boolean)
+	}
+}
+
+ensureHeadersPolyfill()
+
 const SECURE_COOKIE = import.meta.env.MODE !== 'development'
 const DEFAULT_COOKIE_DOMAIN = SECURE_COOKIE ? 'lunette.noahrognon.fr' : undefined
 const SAME_SITE = SECURE_COOKIE ? 'None' : 'Lax'
