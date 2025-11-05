@@ -1,6 +1,6 @@
 import PocketBase from 'pocketbase'
 import { exportAuthCookie } from '../../../utils/auth.js'
-import baseClient from '../../../utils/pb.js'
+import { PB_BASE_URL } from '../../../utils/pb.js'
 
 export const prerender = false
 
@@ -14,7 +14,7 @@ const parseRequestBody = async (request) => {
 	}
 }
 
-const createClient = () => new PocketBase(baseClient.baseUrl)
+const createClient = () => new PocketBase(PB_BASE_URL)
 
 export const POST = async ({ request }) => {
 	const { email, password } = await parseRequestBody(request)

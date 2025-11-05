@@ -4,11 +4,11 @@ import {
 	clearAuthCookie
 } from '../../../utils/auth.js'
 import PocketBase from 'pocketbase'
-import baseClient from '../../../utils/pb.js'
+import { PB_BASE_URL } from '../../../utils/pb.js'
 
 export const prerender = false
 
-const createClient = () => new PocketBase(baseClient.baseUrl)
+const createClient = () => new PocketBase(PB_BASE_URL)
 
 export const GET = async ({ request }) => {
 	const { pb, authCookie } = await handleAuthFromCookies(request)

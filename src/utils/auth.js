@@ -1,22 +1,16 @@
 import PocketBase from "pocketbase"
-import pbDefault from "./pb.js"
+import { PB_BASE_URL } from "./pb.js"
 
 const SECURE_COOKIE = import.meta.env.MODE !== "development"
 
 export const AUTH_COOKIE_NAME = "pb_auth"
 export const OAUTH_COOKIE_NAME = "pb_oauth_state"
 
-const FALLBACK_BASE_URL =
-	pbDefault?.baseUrl ??
-	(import.meta.env.MODE === "development"
-		? "http://localhost:8090"
-		: "https://lunette.noahrognon.fr:443")
+const createClient = () => new PocketBase(PB_BASE_URL)
 
-const createClient = () => new PocketBase(FALLBACK_BASE_URL)
-
-export const exportAuthCookie = (pb) =>
-	pb
-		? pb.authStore.exportToCookie({
+export const exportAuthCookie = (client) =>
+	client
+		? client.authStore.exportToCookie({
 				name: AUTH_COOKIE_NAME,
 				httpOnly: true,
 				secure: SECURE_COOKIE,
@@ -43,21 +37,22 @@ export const clearOAuthStateCookie = () =>
 	}HttpOnly`
 
 export const handleAuthFromCookies = async (request) => {
-	const pb = createClient()
+	const client = createClient()
 	const cookie = request.headers.get("cookie") ?? ""
-	pb.authStore.loadFromCookie(cookie, AUTH_COOKIE_NAME)
+	client.authStore.loadFromCookie(cookie, AUTH_COOKIE_NAME)
 
 	let authCookie = null
 
 	try {
-		if (pb.authStore.isValid) {
-			await pb.collection("users").authRefresh()
-			authCookie = exportAuthCookie(pb)
+		if (client.authStore.isValid) {
+			await client.collection("users").authRefresh()
+			authCookie = exportAuthCookie(client)
 		}
-	} catch {
-		pb.authStore.clear()
+	} catch (error) {
+		console.error("Auth refresh failed:", error)
+		client.authStore.clear()
 		authCookie = clearAuthCookie()
 	}
 
-	return { pb, authCookie }
+	return { pb: client, authCookie }
 }

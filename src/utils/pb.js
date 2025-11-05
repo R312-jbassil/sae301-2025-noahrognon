@@ -1,13 +1,12 @@
 import PocketBase from 'pocketbase'
 
-let path = ''
+const path = import.meta.env.MODE === 'development'
+    ? 'http://localhost:8090'
+    : 'https://lunette.noahrognon.fr:443'
 
-if (import.meta.env.MODE === 'development') {
-    path = 'http://localhost:8090' // en local
-} else {
-    path = 'https://lunette.noahrognon.fr:443' // sur ton VPS
-}
+export const PB_BASE_URL = path
 
 const pb = new PocketBase(path)
+
 export default pb
 
