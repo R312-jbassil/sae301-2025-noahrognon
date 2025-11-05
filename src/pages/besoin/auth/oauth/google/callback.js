@@ -46,23 +46,28 @@ export const GET = async ({ request, url }) => {
 	const pb = createPocketBase();
 
 	try {
-		await pb.collection('users').authWithOAuth2({
-			provider: oauthCookie.provider,
-			code,
-			codeVerifier: oauthCookie.codeVerifier,
-			redirectUrl: oauthCookie.callbackUrl
+		// ✅ Méthode serveur : pas de popup
+		await pb.collection('users').authWithOAuth2Code(
+			oauthCookie.provider,          // "google"
+			code,                          // ?code=... depuis Google
+			oauthCookie.codeVerifier,      // stocké dans ton cookie d’état
+			oauthCookie.callbackUrl,       // doit matcher l’Authorized redirect URI
+			{ createData: {} }             // optionnel : champs à créer si user inexistant
+		);
+
+		// ✅ Cookie d’auth PB côté serveur
+		const authCookie = pb.authStore.exportToCookie({
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: oauthCookie.callbackUrl.startsWith('https://')
 		});
 
-		const authCookie = exportAuthCookie(pb);
 		const headers = new Headers();
 		headers.set('Location', oauthCookie.redirect ?? '/mon-compte');
 		headers.append('Set-Cookie', authCookie);
 		headers.append('Set-Cookie', clearOAuthStateCookie());
 
-		return new Response(null, {
-			status: 302,
-			headers
-		});
+		return new Response(null, { status: 302, headers });
 	} catch (err) {
 		console.error('OAuth callback exchange failed:', err);
 		return new Response(null, {
@@ -72,5 +77,5 @@ export const GET = async ({ request, url }) => {
 				'Set-Cookie': clearOAuthStateCookie()
 			}
 		});
-	}
-};
+	}};
+

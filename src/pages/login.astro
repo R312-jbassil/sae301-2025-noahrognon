@@ -320,7 +320,7 @@ import loginImageUrl from "../assets/loginimage.png";
 			setLoading(submitButton, true);
 
 			try {
-				const response = await fetch('/api/auth/login', {
+				const response = await fetch('/besoin/auth/login', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ email, password })
@@ -350,7 +350,7 @@ import loginImageUrl from "../assets/loginimage.png";
 		googleButton.addEventListener('click', () => {
 			clearFeedback();
 			setLoading(googleButton, true);
-			const startUrl = `/api/auth/oauth/google/start?redirect=${encodeURIComponent(redirectTarget)}`;
+			const startUrl = `/besoin/auth/oauth/google/start?redirect=${encodeURIComponent(redirectTarget)}`;
 			window.location.href = startUrl;
 		});
 	}

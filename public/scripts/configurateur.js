@@ -1,14 +1,19 @@
 // public/scripts/configurateur.js
 const state = {
 	materialFrame: 'metal',
+	materialFrameId: null,
+	materialFrameLabel: 'Metal',
 	materialTemples: 'metal',
+	materialTemplesId: null,
+	materialTemplesLabel: 'Metal',
 	bridge: 5,
 	lensSize: 5,
 	lensColor: 'transparent',
 	finish: 'brillant',
 	engraveText: '',
 	engraveSide: 'gauche',
-	price: 250
+	price: 250,
+	editId: null
 };
 
 const MATERIAL_COLORS = {
@@ -38,6 +43,8 @@ const PRICING = {
 };
 
 const $ = (sel) => document.querySelector(sel);
+const materialIdByCode = {};
+const materialCodeById = {};
 let svgRoot;
 let gMonture;
 let gBrancheG;
@@ -48,6 +55,100 @@ let gVerreD;
 let txtGravure;
 
 const getBaseTransform = (node) => node?.dataset.baseTransform || '';
+
+const slugify = (value) =>
+	value
+		.toString()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+
+async function loadMaterials() {
+	try {
+		const response = await fetch('/besoin/materiaux');
+		if (!response.ok) throw new Error('materiaux-fetch-failed');
+		const payload = await response.json();
+		const items = Array.isArray(payload?.items) ? payload.items : [];
+		items.forEach((item) => {
+			const code = slugify(item.libelle ?? item.id);
+			materialIdByCode[code] = item.id;
+			materialCodeById[item.id] = code;
+		});
+	} catch (error) {
+		console.warn('Materiaux fetch fallback', error);
+	}
+	applyMaterialIdsToOptions();
+	syncMaterialStateFromSelects();
+}
+
+function applyMaterialIdsToOptions() {
+	const frameSelect = $('#materialFrame');
+	const templeSelect = $('#materialTemples');
+	[frameSelect, templeSelect].forEach((select) => {
+		if (!select) return;
+		Array.from(select.options).forEach((option) => {
+			const code = option.value;
+			if (materialIdByCode[code]) {
+				option.dataset.materialId = materialIdByCode[code];
+			}
+		});
+	});
+}
+
+function syncMaterialStateFromSelects() {
+	const frameSelect = $('#materialFrame');
+	const frameOption = frameSelect?.selectedOptions?.[0];
+	if (frameOption) {
+		state.materialFrame = frameOption.value;
+		state.materialFrameId =
+			frameOption.dataset.materialId || materialIdByCode[frameOption.value] || null;
+		state.materialFrameLabel = frameOption.textContent?.trim() || state.materialFrame;
+	}
+	const templeSelect = $('#materialTemples');
+	const templeOption = templeSelect?.selectedOptions?.[0];
+	if (templeOption) {
+		state.materialTemples = templeOption.value;
+		state.materialTemplesId =
+			templeOption.dataset.materialId || materialIdByCode[templeOption.value] || null;
+		state.materialTemplesLabel = templeOption.textContent?.trim() || state.materialTemples;
+	}
+}
+
+function updateFinishButtons() {
+	document.querySelectorAll('.finish-btn').forEach((btn) => {
+		if (btn.dataset.finish === state.finish) {
+			btn.classList.add('ring-2', 'ring-amber-500', 'bg-amber-500/20');
+		} else {
+			btn.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-500/20');
+		}
+	});
+}
+
+function setSelectValue(select, slug, materialId) {
+	if (!select) return;
+	let applied = false;
+	if (slug && select.querySelector(`option[value="${slug}"]`)) {
+		select.value = slug;
+		applied = true;
+	}
+	if (!applied && materialId) {
+		const match = Array.from(select.options).find(
+			(option) => option.dataset.materialId === materialId
+		);
+		if (match) {
+			select.value = match.value;
+		}
+	}
+}
+
+function syncEditQueryParam() {
+	if (!state.editId || !window.history?.replaceState) return;
+	const url = new URL(window.location.href);
+	url.searchParams.set('edit', state.editId);
+	window.history.replaceState({}, '', url.toString());
+}
 
 async function loadSVG() {
 	const res = await fetch('/assets/lunettes.svg');
@@ -99,6 +200,7 @@ function applyAll() {
 
 	updatePrice();
 	updateProgress();
+	updateFinishButtons();
 }
 
 function colorize(group, fill, opacity = 1) {
@@ -123,9 +225,13 @@ function applyFinish(kind) {
 
 function applyBridgeWidth(mm) {
 	if (!gPont) return;
+	if (!gPont.dataset.centerX) {
+		const box = gPont.getBBox();
+		gPont.dataset.centerX = String(box.x + box.width / 2);
+	}
+	const centerX = Number(gPont.dataset.centerX || 298);
 	const base = getBaseTransform(gPont);
 	const scale = 0.85 + ((mm - 2) / 8) * 0.4;
-	const centerX = 298;
 	gPont.setAttribute(
 		'transform',
 		`translate(${centerX} 0) scale(${scale},1) translate(${-centerX} 0) ${base}`.trim()
@@ -191,11 +297,19 @@ function updateProgress() {
 
 function bindUI() {
 	$('#materialFrame').addEventListener('change', (e) => {
-		state.materialFrame = e.target.value;
+		const option = e.target.selectedOptions?.[0];
+		state.materialFrame = option?.value ?? state.materialFrame;
+		state.materialFrameId =
+			option?.dataset.materialId || materialIdByCode[state.materialFrame] || null;
+		state.materialFrameLabel = option?.textContent?.trim() || state.materialFrame;
 		applyAll();
 	});
 	$('#materialTemples').addEventListener('change', (e) => {
-		state.materialTemples = e.target.value;
+		const option = e.target.selectedOptions?.[0];
+		state.materialTemples = option?.value ?? state.materialTemples;
+		state.materialTemplesId =
+			option?.dataset.materialId || materialIdByCode[state.materialTemples] || null;
+		state.materialTemplesLabel = option?.textContent?.trim() || state.materialTemples;
 		applyAll();
 	});
 	$('#bridge').addEventListener('input', (e) => {
@@ -213,10 +327,7 @@ function bindUI() {
 	document.querySelectorAll('.finish-btn').forEach((btn) => {
 		btn.addEventListener('click', () => {
 			state.finish = btn.dataset.finish;
-			document.querySelectorAll('.finish-btn').forEach((b) =>
-				b.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-500/20')
-			);
-			btn.classList.add('ring-2', 'ring-amber-500', 'bg-amber-500/20');
+			updateFinishButtons();
 			applyAll();
 		});
 	});
@@ -240,16 +351,22 @@ function currentSVGString() {
 }
 
 async function saveComposition() {
-	await persist('/api/save-composition');
+	await persist('/besoin/save-composition');
 }
 
 async function createOrder() {
-	await persist('/api/create-order');
+	await persist('/besoin/create-order');
 }
 
 async function persist(url) {
 	try {
-		const payload = { options: { ...state }, svg: currentSVGString() };
+		const payloadOptions = { ...state };
+		delete payloadOptions.editId;
+		const payload = {
+			options: payloadOptions,
+			svg: currentSVGString(),
+			editId: state.editId
+		};
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -259,6 +376,14 @@ async function persist(url) {
 		if (!response.ok || !data.ok) {
 			throw new Error(data.error || 'Une erreur est survenue');
 		}
+		if (data?.id) {
+			state.editId = data.id;
+		} else if (data?.lunetteId) {
+			state.editId = data.lunetteId;
+		}
+		if (state.editId) {
+			syncEditQueryParam();
+		}
 		alert(url.includes('order') ? 'Commande creee.' : 'Configuration sauvegardee.');
 	} catch (error) {
 		console.error(error);
@@ -266,5 +391,78 @@ async function persist(url) {
 	}
 }
 
-bindUI();
-loadSVG();
+async function loadExistingConfiguration(id) {
+	try {
+		const response = await fetch(`/besoin/lunettes/${id}`);
+		if (!response.ok) {
+			throw new Error('lunette-fetch-failed');
+		}
+		const payload = await response.json();
+		if (!payload?.ok) {
+			throw new Error(payload?.error || 'lunette-fetch-failed');
+		}
+		const { options } = payload;
+		state.editId = id;
+		state.materialFrameId = options.materialFrameId ?? null;
+		state.materialFrameLabel = options.materialFrameLabel ?? state.materialFrameLabel;
+		const frameSlug =
+			options.materialFrameSlug ??
+			(state.materialFrameId ? materialCodeById[state.materialFrameId] : null);
+		state.materialFrame = frameSlug ?? state.materialFrame;
+		state.materialTemplesId = options.materialTemplesId ?? null;
+		state.materialTemplesLabel = options.materialTemplesLabel ?? state.materialTemplesLabel;
+		const templesSlug =
+			options.materialTemplesSlug ??
+			(state.materialTemplesId ? materialCodeById[state.materialTemplesId] : null);
+		state.materialTemples = templesSlug ?? state.materialTemples;
+		state.bridge = Number(options.bridge ?? state.bridge);
+		state.lensSize = Number(options.lensSize ?? state.lensSize);
+		state.lensColor = options.lensColor ?? state.lensColor;
+		state.finish = options.finish ?? state.finish;
+		state.engraveText = options.engraveText ?? '';
+		state.engraveSide = options.engraveSide ?? 'gauche';
+		state.price = Number(options.price ?? state.price);
+
+		setSelectValue($('#materialFrame'), frameSlug, options.materialFrameId);
+		setSelectValue($('#materialTemples'), templesSlug, options.materialTemplesId);
+
+		const bridgeInput = $('#bridge');
+		if (bridgeInput) bridgeInput.value = state.bridge;
+		const lensSizeInput = $('#lensSize');
+		if (lensSizeInput) lensSizeInput.value = state.lensSize;
+		const lensColorSelect = $('#lensColor');
+		if (lensColorSelect) lensColorSelect.value = state.lensColor;
+		const engraveInput = $('#engraveText');
+		if (engraveInput) engraveInput.value = state.engraveText;
+		const engraveRadio = document.querySelector(
+			`input[name='engraveSide'][value='${state.engraveSide}']`
+		);
+		if (engraveRadio) engraveRadio.checked = true;
+
+		syncMaterialStateFromSelects();
+		state.materialFrameLabel = options.materialFrameLabel ?? state.materialFrameLabel;
+		state.materialTemplesLabel = options.materialTemplesLabel ?? state.materialTemplesLabel;
+		updateFinishButtons();
+		updatePrice();
+		updateProgress();
+		applyAll();
+		syncEditQueryParam();
+	} catch (error) {
+		console.error('loadExistingConfiguration error', error);
+	}
+}
+
+async function init() {
+	await loadMaterials();
+	bindUI();
+	syncMaterialStateFromSelects();
+	await loadSVG();
+	const params = new URLSearchParams(window.location.search);
+	const editParam = params.get('edit');
+	if (editParam) {
+		state.editId = editParam;
+		await loadExistingConfiguration(editParam);
+	}
+}
+
+init();
