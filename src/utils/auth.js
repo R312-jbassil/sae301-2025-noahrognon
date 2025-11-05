@@ -13,32 +13,29 @@ const SAME_SITE = SECURE_COOKIE ? "None" : "Lax"
 const createClient = () => new PocketBase(PB_BASE_URL)
 
 export const exportAuthCookie = (client) =>
-		client
-				? client.authStore.exportToCookie({
-							 name: AUTH_COOKIE_NAME,
-							 httpOnly: true,
-							 secure: SECURE_COOKIE,
-							 // pocketbase expects a string like 'none'|'lax'|'strict' (case-insensitive)
-							 sameSite: SAME_SITE.toLowerCase(),
-							 path: "/"
-					})
-				: ""
+	client
+		? client.authStore.exportToCookie({
+			name: AUTH_COOKIE_NAME,
+			httpOnly: true,
+			secure: SECURE_COOKIE,
+			// pocketbase expects a string like 'none'|'lax'|'strict' (case-insensitive)
+			sameSite: SAME_SITE.toLowerCase(),
+			path: "/"
+		})
+		: ""
 
 export const clearAuthCookie = () =>
-	`${AUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=${SAME_SITE}; ${
-		SECURE_COOKIE ? "Secure; " : ""
+	`${AUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=${SAME_SITE}; ${SECURE_COOKIE ? "Secure; " : ""
 	}HttpOnly;`
 
 export const exportOAuthStateCookie = (value) => {
 	const encoded = encodeURIComponent(JSON.stringify(value))
-	return `${OAUTH_COOKIE_NAME}=${encoded}; Path=/; SameSite=${SAME_SITE}; ${
-		SECURE_COOKIE ? "Secure; " : ""
-	}HttpOnly; Max-Age=${60 * 10}`
+	return `${OAUTH_COOKIE_NAME}=${encoded}; Path=/; SameSite=${SAME_SITE}; ${SECURE_COOKIE ? "Secure; " : ""
+		}HttpOnly; Max-Age=${60 * 10}`
 }
 
 export const clearOAuthStateCookie = () =>
-	`${OAUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=${SAME_SITE}; ${
-		SECURE_COOKIE ? "Secure; " : ""
+	`${OAUTH_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=${SAME_SITE}; ${SECURE_COOKIE ? "Secure; " : ""
 	}HttpOnly;`
 
 // Helper to normalize a cookie string that might contain multiple lines and

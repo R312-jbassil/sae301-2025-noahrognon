@@ -1,6 +1,6 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { handleAuthFromCookies } from '../utils/auth.js';
+import Layout from "../layouts/Layout.astro";
+import { handleAuthFromCookies } from "../utils/auth.js";
 
 export const prerender = false;
 
@@ -8,67 +8,113 @@ const { pb, authCookie } = await handleAuthFromCookies(Astro.request);
 
 if (authCookie) {
 	// authCookie may contain multiple newline-separated cookie strings — append each
-	const parts = authCookie.split(/\r?\n/).filter(Boolean)
+	const parts = authCookie.split(/\r?\n/).filter(Boolean);
 	if (parts.length > 1) {
-		parts.forEach((c) => Astro.response.headers.append('Set-Cookie', c))
+		parts.forEach((c) => Astro.response.headers.append("Set-Cookie", c));
 	} else {
-		Astro.response.headers.set('Set-Cookie', authCookie)
+		Astro.response.headers.set("Set-Cookie", authCookie);
 	}
 }
 
 if (!pb.authStore?.isValid || !pb.authStore.model) {
-	return Astro.redirect(`/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+	return Astro.redirect(
+		`/login?redirect=${encodeURIComponent(Astro.url.pathname)}`,
+	);
 }
 
 const user = pb.authStore.model;
 
 const memberSince = new Date(user.created);
-const memberSinceLabel = memberSince.toLocaleDateString('fr-FR', {
-	month: 'long',
-	year: 'numeric'
+const memberSinceLabel = memberSince.toLocaleDateString("fr-FR", {
+	month: "long",
+	year: "numeric",
 });
 
 const stats = [
-	{ label: 'Commandes', value: user.commande ?? 0, suffix: 'Total' },
-	{ label: 'Cr&eacute;ations', value: user.creation ?? 0, suffix: 'Actives' },
-	{ label: 'Fid&eacute;lit&eacute;', value: user.fidelite ?? 0, suffix: 'Points' },
-	{ label: 'Premium', value: user.premium ? 'Actif' : 'Standard', suffix: 'Statut' }
+	{ label: "Commandes", value: user.commande ?? 0, suffix: "Total" },
+	{ label: "Cr&eacute;ations", value: user.creation ?? 0, suffix: "Actives" },
+	{
+		label: "Fid&eacute;lit&eacute;",
+		value: user.fidelite ?? 0,
+		suffix: "Points",
+	},
+	{
+		label: "Premium",
+		value: user.premium ? "Actif" : "Standard",
+		suffix: "Statut",
+	},
 ];
 ---
 
 <Layout title="Mon compte | TaVue">
 	<section class="bg-[#101214] py-16 text-[#F6F1E8] md:py-20">
 		<div class="mx-auto flex max-w-5xl flex-col gap-12 px-6">
-			<header class="flex flex-col gap-6 rounded-[2.5rem] border border-[#1F2328] bg-[#16191D] px-6 py-8 shadow-[0_25px_60px_rgba(0,0,0,0.45)] md:flex-row md:items-center md:justify-between md:px-10 md:py-10">
+			<header
+				class="flex flex-col gap-6 rounded-[2.5rem] border border-[#1F2328] bg-[#16191D] px-6 py-8 shadow-[0_25px_60px_rgba(0,0,0,0.45)] md:flex-row md:items-center md:justify-between md:px-10 md:py-10"
+			>
 				<div class="flex items-center gap-6">
-					<div class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#F5D6A1] to-[#CE9E5C] font-playfair text-2xl font-semibold text-[#2E2518] md:h-20 md:w-20 md:text-3xl">
-						{(user.name ?? user.email ?? 'Invit&eacute;')
-							.toString()
-							.trim()
-							.split(' ')
-							.map((part) => part.charAt(0))
-							.slice(0, 2)
-							.join('')
-							.toUpperCase()}
+					<div
+						class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#F5D6A1] to-[#CE9E5C] font-playfair text-2xl font-semibold text-[#2E2518] md:h-20 md:w-20 md:text-3xl"
+					>
+						{
+							(user.name ?? user.email ?? "Invit&eacute;")
+								.toString()
+								.trim()
+								.split(" ")
+								.map((part) => part.charAt(0))
+								.slice(0, 2)
+								.join("")
+								.toUpperCase()
+						}
 					</div>
 					<div>
-						<p class="text-sm uppercase tracking-[0.34em] text-[#8A939F]" set:html={'Bonjour'}></p>
-						<h1 class="font-playfair text-3xl font-semibold text-white md:text-4xl">{user.name ?? 'Membre TaVue'}</h1>
-						<p class="mt-2 flex items-center gap-2 text-sm text-[#9BA3AD]">
-							<span class="inline-flex items-center gap-1 rounded-full border border-[#292E33] bg-[#1E2126] px-3 py-1 text-xs text-[#D1B17A]">
-								<svg viewBox="0 0 16 16" fill="currentColor" class="h-3.5 w-3.5">
-									<path d="M8 0c4.406 0 8 3.594 8 8s-3.594 8-8 8-8-3.594-8-8 3.594-8 8-8zm0 1.6C4.48 1.6 1.6 4.48 1.6 8S4.48 14.4 8 14.4 14.4 11.52 14.4 8 11.52 1.6 8 1.6zm.8 3.2v3.2h3.2v1.6H7.2V4.8z" />
+						<p
+							class="text-sm uppercase tracking-[0.34em] text-[#8A939F]"
+							set:html={"Bonjour"}
+						/>
+						<h1
+							class="font-playfair text-3xl font-semibold text-white md:text-4xl"
+						>
+							{user.name ?? "Membre TaVue"}
+						</h1>
+						<p
+							class="mt-2 flex items-center gap-2 text-sm text-[#9BA3AD]"
+						>
+							<span
+								class="inline-flex items-center gap-1 rounded-full border border-[#292E33] bg-[#1E2126] px-3 py-1 text-xs text-[#D1B17A]"
+							>
+								<svg
+									viewBox="0 0 16 16"
+									fill="currentColor"
+									class="h-3.5 w-3.5"
+								>
+									<path
+										d="M8 0c4.406 0 8 3.594 8 8s-3.594 8-8 8-8-3.594-8-8 3.594-8 8-8zm0 1.6C4.48 1.6 1.6 4.48 1.6 8S4.48 14.4 8 14.4 14.4 11.52 14.4 8 11.52 1.6 8 1.6zm.8 3.2v3.2h3.2v1.6H7.2V4.8z"
+									></path>
 								</svg>
 								<span>{memberSinceLabel}</span>
 							</span>
-							<span class="hidden text-xs text-[#6C747E] md:inline" set:html={'Membre depuis'}></span>
+							<span
+								class="hidden text-xs text-[#6C747E] md:inline"
+								set:html={"Membre depuis"}
+							/>
 						</p>
 					</div>
 				</div>
-				<div class="flex flex-col gap-3 text-sm text-[#929DA8] md:text-right">
-					<div class="inline-flex items-center gap-2 rounded-full border border-[#292E33] bg-[#1E2126] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#D1B17A]">
-						<svg viewBox="0 0 16 16" fill="currentColor" class="h-3.5 w-3.5">
-							<path d="M12.5 2h-9A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 12.5 2zm0 1.5v9h-9v-9z" />
+				<div
+					class="flex flex-col gap-3 text-sm text-[#929DA8] md:text-right"
+				>
+					<div
+						class="inline-flex items-center gap-2 rounded-full border border-[#292E33] bg-[#1E2126] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#D1B17A]"
+					>
+						<svg
+							viewBox="0 0 16 16"
+							fill="currentColor"
+							class="h-3.5 w-3.5"
+						>
+							<path
+								d="M12.5 2h-9A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 12.5 2zm0 1.5v9h-9v-9z"
+							></path>
 						</svg>
 						Client Premium
 					</div>
@@ -77,9 +123,23 @@ const stats = [
 						id="logout"
 						class="inline-flex items-center justify-center gap-2 rounded-full border border-[#2B3035] bg-[#181B1F] px-4 py-2 text-xs font-semibold text-[#D5DEE8] transition hover:border-[#D1B17A]"
 					>
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" class="h-4 w-4">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M10 4.167H4.167A1.667 1.667 0 0 0 2.5 5.833v8.334a1.667 1.667 0 0 0 1.667 1.666H10" />
-							<path stroke-linecap="round" stroke-linejoin="round" d="M13.333 13.333 17.5 10l-4.167-3.333M7.5 10h9.167" />
+						<svg
+							viewBox="0 0 20 20"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.7"
+							class="h-4 w-4"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M10 4.167H4.167A1.667 1.667 0 0 0 2.5 5.833v8.334a1.667 1.667 0 0 0 1.667 1.666H10"
+							></path>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M13.333 13.333 17.5 10l-4.167-3.333M7.5 10h9.167"
+							></path>
 						</svg>
 						D&eacute;connexion
 					</button>
@@ -87,48 +147,94 @@ const stats = [
 			</header>
 
 			<section class="grid gap-6 md:grid-cols-4">
-				{stats.map((item) => (
-					<div
-						class="flex flex-col gap-2 rounded-3xl border border-[#1F2328] bg-[#14171B] px-5 py-6 text-[#D8E0E8] shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
-						set:key={item.label}
-					>
-						<p class="text-xs uppercase tracking-[0.38em] text-[#6F7984]" set:html={item.suffix}></p>
-						<p class="font-playfair text-3xl text-white">{item.value}</p>
-						<p class="text-sm text-[#8C97A2]" set:html={item.label}></p>
-					</div>
-				))}
+				{
+					stats.map((item) => (
+						<div
+							class="flex flex-col gap-2 rounded-3xl border border-[#1F2328] bg-[#14171B] px-5 py-6 text-[#D8E0E8] shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
+							set:key={item.label}
+						>
+							<p
+								class="text-xs uppercase tracking-[0.38em] text-[#6F7984]"
+								set:html={item.suffix}
+							/>
+							<p class="font-playfair text-3xl text-white">
+								{item.value}
+							</p>
+							<p
+								class="text-sm text-[#8C97A2]"
+								set:html={item.label}
+							/>
+						</div>
+					))
+				}
 			</section>
 
-			<section class="rounded-[2.5rem] border border-[#1F242A] bg-[#16191D] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.35)] md:p-10">
+			<section
+				class="rounded-[2.5rem] border border-[#1F242A] bg-[#16191D] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.35)] md:p-10"
+			>
 				<nav class="mb-8 flex flex-wrap gap-3">
-					<button class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#1C2024] px-5 py-2 text-xs font-semibold text-[#D1B17A]">
-						<span class="h-2 w-2 rounded-full bg-[#D1B17A]" />
+					<button
+						class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#1C2024] px-5 py-2 text-xs font-semibold text-[#D1B17A]"
+					>
+						<span class="h-2 w-2 rounded-full bg-[#D1B17A]"></span>
 						Profil
 					</button>
-					<button class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]">
+					<button
+						class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]"
+					>
 						Commandes
 					</button>
-					<button class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]">
+					<button
+						class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]"
+					>
 						Adresses
 					</button>
-					<button class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]">
+					<button
+						class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]"
+					>
 						Paiement
 					</button>
-					<button class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]">
+					<button
+						class="inline-flex items-center gap-2 rounded-full border border-[#2B3035] bg-[#14171B] px-5 py-2 text-xs font-semibold text-[#8B949F]"
+					>
 						Param&egrave;tres
 					</button>
 				</nav>
 
-				<div class="rounded-[2rem] border border-[#1F242A] bg-[#12161A] p-6 md:p-8">
-					<header class="mb-6 flex flex-wrap items-center justify-between gap-4 text-[#DAD4C6]">
+				<div
+					class="rounded-[2rem] border border-[#1F242A] bg-[#12161A] p-6 md:p-8"
+				>
+					<header
+						class="mb-6 flex flex-wrap items-center justify-between gap-4 text-[#DAD4C6]"
+					>
 						<div>
-							<h2 class="font-playfair text-2xl text-white">Informations personnelles</h2>
-							<p class="text-sm text-[#848E98]" set:html={'G&eacute;rez vos informations de compte'}></p>
+							<h2 class="font-playfair text-2xl text-white">
+								Informations personnelles
+							</h2>
+							<p
+								class="text-sm text-[#848E98]"
+								set:html={"G&eacute;rez vos informations de compte"}
+							/>
 						</div>
-						<button class="inline-flex items-center gap-2 rounded-full border border-[#343941] bg-[#191C20] px-4 py-2 text-xs font-semibold text-[#D1B17A]">
-							<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" class="h-3.5 w-3.5">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 4.5H3.75a.75.75 0 0 0-.75.75v9A.75.75 0 0 0 3.75 15h9a.75.75 0 0 0 .75-.75V7.5" />
-								<path stroke-linecap="round" stroke-linejoin="round" d="m12 3 3 3-6.75 6.75H5.25V10.5z" />
+						<button
+							class="inline-flex items-center gap-2 rounded-full border border-[#343941] bg-[#191C20] px-4 py-2 text-xs font-semibold text-[#D1B17A]"
+						>
+							<svg
+								viewBox="0 0 18 18"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.6"
+								class="h-3.5 w-3.5"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M10.5 4.5H3.75a.75.75 0 0 0-.75.75v9A.75.75 0 0 0 3.75 15h9a.75.75 0 0 0 .75-.75V7.5"
+								></path>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="m12 3 3 3-6.75 6.75H5.25V10.5z"></path>
 							</svg>
 							Modifier
 						</button>
@@ -136,37 +242,76 @@ const stats = [
 
 					<div class="grid gap-5 md:grid-cols-2">
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]" set:html={'Pr&eacute;nom'}></label>
-							<p class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]">
-								{user.name?.split(' ')[0] ?? 'Non renseign&eacute;'}
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								set:html={"Pr&eacute;nom"}
+							/>
+							<p
+								class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]"
+							>
+								{
+									user.name?.split(" ")[0] ??
+										"Non renseign&eacute;"
+								}
 							</p>
 						</div>
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]" set:html={'Nom'}></label>
-							<p class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]">
-								{user.name?.split(' ').slice(1).join(' ') || user.name || 'Non renseign&eacute;'}
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								set:html={"Nom"}
+							/>
+							<p
+								class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]"
+							>
+								{
+									user.name?.split(" ").slice(1).join(" ") ||
+										user.name ||
+										"Non renseign&eacute;"
+								}
 							</p>
 						</div>
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]">Email</label>
-							<p class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]">
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								>Email</label
+							>
+							<p
+								class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]"
+							>
 								{user.email}
 							</p>
 						</div>
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]" set:html={'T&eacute;l&eacute;phone'}></label>
-							<p class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]">
-								{user.telephone ?? 'Non renseign&eacute;'}
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								set:html={"T&eacute;l&eacute;phone"}
+							/>
+							<p
+								class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]"
+							>
+								{user.telephone ?? "Non renseign&eacute;"}
 							</p>
 						</div>
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]" set:html={'Date de naissance'}></label>
-							<p class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]">
-								{user.age ? `${user.age} ans` : 'Non renseign&eacute;'}
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								set:html={"Date de naissance"}
+							/>
+							<p
+								class="rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D9E1EA]"
+							>
+								{
+									user.age
+										? `${user.age} ans`
+										: "Non renseign&eacute;"
+								}
 							</p>
 						</div>
 						<div class="space-y-1.5">
-							<label class="text-xs uppercase tracking-[0.35em] text-[#606974]">S&eacute;curit&eacute;</label>
+							<label
+								class="text-xs uppercase tracking-[0.35em] text-[#606974]"
+								>S&eacute;curit&eacute;</label
+							>
 							<a
 								href="/changer-mot-de-passe"
 								class="block rounded-2xl border border-[#1E2227] bg-[#161A1F] px-4 py-3 text-sm text-[#D1B17A] transition hover:border-[#D1B17A]"
@@ -181,8 +326,10 @@ const stats = [
 							href="/mes-creations"
 							class="flex items-center justify-between rounded-2xl border border-[#1E2227] bg-[#161A1F] px-5 py-4 text-sm text-[#D1B17A] transition hover:border-[#D1B17A]"
 						>
-							<span set:html={'Mes cr&eacute;ations'}></span>
-							<span class="text-[#8C97A2]">{user.creation ?? 0}</span>
+							<span set:html={"Mes cr&eacute;ations"} />
+							<span class="text-[#8C97A2]"
+								>{user.creation ?? 0}</span
+							>
 						</a>
 						<a
 							href="/parametres-securite"
@@ -199,16 +346,16 @@ const stats = [
 </Layout>
 
 <script type="module">
-	const logoutButton = document.querySelector('#logout');
+	const logoutButton = document.querySelector("#logout");
 	if (logoutButton) {
-		logoutButton.addEventListener('click', async () => {
-			logoutButton.setAttribute('aria-busy', 'true');
+		logoutButton.addEventListener("click", async () => {
+			logoutButton.setAttribute("aria-busy", "true");
 			try {
-				await fetch('/besoin/auth/logout', { method: 'POST' });
+				await fetch("/besoin/auth/logout", { method: "POST" });
 			} catch (error) {
-				console.error('Logout failed', error);
+				console.error("Logout failed", error);
 			} finally {
-				window.location.href = '/login';
+				window.location.href = "/login";
 			}
 		});
 	}
