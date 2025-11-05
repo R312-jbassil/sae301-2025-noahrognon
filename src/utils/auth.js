@@ -1,6 +1,14 @@
 import PocketBase from 'pocketbase'
 import { PB_BASE_URL } from './pb.js'
 
+const isProduction = import.meta.env.MODE !== 'development'
+const DEFAULT_COOKIE_DOMAIN = 'lunette.noahrognon.fr'
+
+export const AUTH_COOKIE_NAME = 'pb_auth'
+export const OAUTH_COOKIE_NAME = 'pb_oauth_state'
+
+const createClient = () => new PocketBase(PB_BASE_URL)
+
 const ensureHeadersPolyfill = () => {
 	if (typeof Headers === 'undefined') return
 
@@ -21,65 +29,98 @@ const ensureHeadersPolyfill = () => {
 
 ensureHeadersPolyfill()
 
-const SECURE_COOKIE = import.meta.env.MODE !== 'development'
-const DEFAULT_COOKIE_DOMAIN = SECURE_COOKIE ? 'lunette.noahrognon.fr' : undefined
-const SAME_SITE = SECURE_COOKIE ? 'None' : 'Lax'
-
-export const AUTH_COOKIE_NAME = 'pb_auth'
-export const OAUTH_COOKIE_NAME = 'pb_oauth_state'
-
-const createClient = () => new PocketBase(PB_BASE_URL)
-
 const normaliseHost = (host) => (host ? host.replace(/:\d+$/, '').toLowerCase() : undefined)
 
-export const resolveCookieDomain = (request) => {
-	if (!SECURE_COOKIE) return undefined
-
-	const explicitEnv = import.meta.env.PUBLIC_COOKIE_DOMAIN?.trim()
-	if (explicitEnv) return explicitEnv.toLowerCase()
-
-	if (!request) return DEFAULT_COOKIE_DOMAIN
-
-	if (typeof request === 'string') return normaliseHost(request)
-
-	const headers = request.headers
-	const forwardedHost = headers?.get?.('x-forwarded-host')
-	const candidate = forwardedHost ? forwardedHost.split(',')[0]?.trim() : undefined
-	const host = candidate || headers?.get?.('host')
-	return normaliseHost(host) ?? DEFAULT_COOKIE_DOMAIN
+const getHeader = (request, name) => {
+	if (!request || typeof request === 'string') return undefined
+	return request.headers?.get?.(name) ?? undefined
 }
 
-export const exportAuthCookie = (client, domain) =>
-	client
-		? client.authStore.exportToCookie({
-				name: AUTH_COOKIE_NAME,
-				httpOnly: true,
-				secure: SECURE_COOKIE,
-				sameSite: SAME_SITE.toLowerCase(),
-				path: '/',
-				...(domain ? { domain } : {})
-		  })
-		: ''
+const firstHeaderToken = (value) => value?.split(',')?.[0]?.trim() ?? undefined
 
-const formatCookie = (name, value, domain, extras = []) => {
+const detectProto = (request) => {
+	const forwardedProto = firstHeaderToken(getHeader(request, 'x-forwarded-proto'))
+	if (forwardedProto) return forwardedProto.toLowerCase()
+
+	if (typeof request === 'string') {
+		if (request.startsWith('https')) return 'https'
+		if (request.startsWith('http')) return 'http'
+		return undefined
+	}
+
+	const url = request?.url
+	if (typeof url === 'string') {
+		if (url.startsWith('https:')) return 'https'
+		if (url.startsWith('http:')) return 'http'
+	}
+
+	return undefined
+}
+
+export const resolveCookieConfig = (request) => {
+	const explicitEnv = import.meta.env.PUBLIC_COOKIE_DOMAIN?.trim()?.toLowerCase() ?? null
+
+	const proto = detectProto(request)
+	const secure = proto ? proto === 'https' : isProduction
+	const sameSite = secure ? 'None' : 'Lax'
+
+	const forwardedHost = normaliseHost(firstHeaderToken(getHeader(request, 'x-forwarded-host')))
+	const hostHeader = normaliseHost(getHeader(request, 'host'))
+	const fallbackHost = typeof request === 'string' ? normaliseHost(request) : undefined
+
+	const rawDomain =
+		explicitEnv ??
+		(forwardedHost && forwardedHost !== 'localhost' ? forwardedHost : undefined) ??
+		(hostHeader && hostHeader !== 'localhost' ? hostHeader : undefined) ??
+		(fallbackHost && fallbackHost !== 'localhost' ? fallbackHost : undefined) ??
+		(secure ? DEFAULT_COOKIE_DOMAIN : undefined)
+
+	const domain = explicitEnv || (rawDomain && rawDomain !== 'localhost' ? rawDomain : undefined)
+
+	return { secure, sameSite, domain }
+}
+
+export const exportAuthCookie = (client, config = resolveCookieConfig()) => {
+	if (!client) return ''
+	const { secure, sameSite, domain } = config
+	return client.authStore.exportToCookie({
+		name: AUTH_COOKIE_NAME,
+		httpOnly: true,
+		secure,
+		sameSite: (sameSite ?? (secure ? 'None' : 'Lax')).toLowerCase(),
+		path: '/',
+		...(domain ? { domain } : {})
+	})
+}
+
+const formatCookie = (name, value, config, extras = []) => {
+	const { secure, sameSite, domain } = config
+	const normalisedSameSite = (sameSite ?? (secure ? 'None' : 'Lax')).toLowerCase()
+	const sameSiteLabel =
+		normalisedSameSite === 'none'
+			? 'None'
+			: normalisedSameSite === 'strict'
+			? 'Strict'
+			: 'Lax'
+
 	const parts = [`${name}=${value}`, 'Path=/', ...extras]
 	if (domain) parts.push(`Domain=${domain}`)
-	if (SECURE_COOKIE) parts.push('Secure')
-	parts.push(`SameSite=${SAME_SITE}`)
+	if (secure) parts.push('Secure')
+	parts.push(`SameSite=${sameSiteLabel}`)
 	parts.push('HttpOnly')
 	return parts.join('; ') + ';'
 }
 
-export const clearAuthCookie = (domain) =>
-	formatCookie(AUTH_COOKIE_NAME, '', domain, ['Expires=Thu, 01 Jan 1970 00:00:00 GMT'])
+export const clearAuthCookie = (config) =>
+	formatCookie(AUTH_COOKIE_NAME, '', config, ['Expires=Thu, 01 Jan 1970 00:00:00 GMT'])
 
-export const exportOAuthStateCookie = (value, domain) => {
+export const exportOAuthStateCookie = (value, config) => {
 	const encoded = encodeURIComponent(JSON.stringify(value))
-	return formatCookie(OAUTH_COOKIE_NAME, encoded, domain, [`Max-Age=${60 * 10}`])
+	return formatCookie(OAUTH_COOKIE_NAME, encoded, config, [`Max-Age=${60 * 10}`])
 }
 
-export const clearOAuthStateCookie = (domain) =>
-	formatCookie(OAUTH_COOKIE_NAME, '', domain, ['Expires=Thu, 01 Jan 1970 00:00:00 GMT'])
+export const clearOAuthStateCookie = (config) =>
+	formatCookie(OAUTH_COOKIE_NAME, '', config, ['Expires=Thu, 01 Jan 1970 00:00:00 GMT'])
 
 export const splitCookieHeader = (cookieString) =>
 	(cookieString || '')
@@ -153,22 +194,22 @@ export const applyCookies = (cookies, cookieString) => {
 
 export const handleAuthFromCookies = async (request) => {
 	const client = createClient()
-	const cookie = request.headers.get('cookie') ?? ''
-	client.authStore.loadFromCookie(cookie, AUTH_COOKIE_NAME)
+	const cookieHeader = request.headers.get('cookie') ?? ''
+	client.authStore.loadFromCookie(cookieHeader, AUTH_COOKIE_NAME)
 
-	const domain = resolveCookieDomain(request)
+	const config = resolveCookieConfig(request)
 	let authCookie = null
 
 	try {
 		if (client.authStore.isValid) {
 			await client.collection('users').authRefresh()
-			authCookie = exportAuthCookie(client, domain)
+			authCookie = exportAuthCookie(client, config)
 		}
 	} catch (error) {
 		console.error('Auth refresh failed:', error)
 		client.authStore.clear()
-		authCookie = clearAuthCookie(domain)
+		authCookie = clearAuthCookie(config)
 	}
 
-	return { pb: client, authCookie, cookieDomain: domain }
+	return { pb: client, authCookie, cookieConfig: config }
 }

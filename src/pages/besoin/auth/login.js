@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase'
-import { applyCookies, exportAuthCookie, resolveCookieDomain } from '../../../utils/auth.js'
+import { applyCookies, exportAuthCookie, resolveCookieConfig, splitCookieHeader } from '../../../utils/auth.js'
 import { PB_BASE_URL } from '../../../utils/pb.js'
 
 export const prerender = false
@@ -30,16 +30,18 @@ export const POST = async ({ request, cookies }) => {
 
 	try {
 		await pb.collection('users').authWithPassword(email, password)
-		const domain = resolveCookieDomain(request)
-		const cookie = exportAuthCookie(pb, domain)
+		const config = resolveCookieConfig(request)
+		const cookie = exportAuthCookie(pb, config)
 		applyCookies(cookies, cookie)
 
 		const redirect = new URL(request.url).searchParams.get('redirect') ?? '/mon-compte'
-		const headers = new Headers()
-		headers.set('Location', redirect)
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		for (const entry of splitCookieHeader(cookie)) {
+			headers.append('Set-Cookie', entry)
+		}
 
-		return new Response(null, {
-			status: 303,
+		return new Response(JSON.stringify({ ok: true, redirect }), {
+			status: 200,
 			headers
 		})
 	} catch (error) {
