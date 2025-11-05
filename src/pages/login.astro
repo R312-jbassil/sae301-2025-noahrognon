@@ -173,7 +173,7 @@ import loginImageUrl from "../assets/loginimage.png";
 
 						<button
 							type="button"
-							id="google-auth"
+							id="googlelogin"
 							class="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#3A4048] bg-[#15181C] px-6 py-3 text-sm font-semibold text-[#EDE7DA] transition hover:-translate-y-0.5 hover:border-[#D1B17A]"
 						>
 							<span aria-hidden="true">
@@ -252,12 +252,14 @@ import loginImageUrl from "../assets/loginimage.png";
 </Layout>
 
 <script type="module">
+	import pb from "../utils/pb.js";
+
 	const form = document.querySelector("#login-form");
 	const feedback = document.querySelector("#login-feedback");
 	const submitButton = form?.querySelector('button[type="submit"]');
 	const passwordInput = document.querySelector("#password");
 	const togglePasswordButton = document.querySelector("#toggle-password");
-	const googleButton = document.querySelector("#google-auth");
+	const googleButton = document.querySelector("#googlelogin");
 
 	const redirectTarget =
 		new URLSearchParams(window.location.search).get("redirect") ??
@@ -287,6 +289,26 @@ import loginImageUrl from "../assets/loginimage.png";
 		button.classList.toggle("opacity-70", isLoading);
 		button.classList.toggle("cursor-not-allowed", isLoading);
 		button.setAttribute("aria-busy", isLoading ? "true" : "false");
+	}
+
+	async function syncSession() {
+		try {
+			const token = pb.authStore.token;
+			const model = pb.authStore.model;
+			if (!token || !model) return false;
+			const response = await fetch("/besoin/auth/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ token, model }),
+			});
+			if (!response.ok) {
+				throw new Error("session-sync-failed");
+			}
+			return true;
+		} catch (error) {
+			console.error("Session sync failed:", error);
+			return false;
+		}
 	}
 
 	if (urlError) {
@@ -323,17 +345,8 @@ import loginImageUrl from "../assets/loginimage.png";
 			setLoading(submitButton, true);
 
 			try {
-				const response = await fetch("/besoin/auth/login", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ email, password }),
-				});
-
-				const data = await response.json();
-
-				if (!response.ok) {
-					throw new Error(data?.error ?? "Identifiants invalides.");
-				}
+				await pb.collection("users").authWithPassword(email, password);
+				await syncSession();
 
 				showFeedback("Connexion reussie. Redirection...", "success");
 				setTimeout(() => {
@@ -341,8 +354,7 @@ import loginImageUrl from "../assets/loginimage.png";
 				}, 600);
 			} catch (error) {
 				const message =
-					error?.message ??
-					"Echec de la connexion. Veuillez verifier vos identifiants.";
+					error?.message ?? "Echec de la connexion. Veuillez verifier vos identifiants.";
 				showFeedback(message);
 			} finally {
 				setLoading(submitButton, false);
@@ -351,11 +363,23 @@ import loginImageUrl from "../assets/loginimage.png";
 	}
 
 	if (googleButton) {
-		googleButton.addEventListener("click", () => {
+		googleButton.addEventListener("click", async () => {
 			clearFeedback();
 			setLoading(googleButton, true);
-			const startUrl = `/besoin/auth/oauth/google/start?redirect=${encodeURIComponent(redirectTarget)}`;
-			window.location.href = startUrl;
+			try {
+				await pb.collection("users").authWithOAuth2({ provider: "google" });
+				await syncSession();
+				location.href = redirectTarget;
+			} catch (error) {
+				showFeedback("Echec de connexion Google");
+				console.error(error);
+			} finally {
+				setLoading(googleButton, false);
+			}
 		});
+	}
+
+	if (pb.authStore.isValid) {
+		syncSession();
 	}
 </script>
