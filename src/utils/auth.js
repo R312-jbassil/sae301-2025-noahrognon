@@ -16,7 +16,7 @@ export const exportAuthCookie = (client) =>
 	client
 		? client.authStore.exportToCookie({
 			name: AUTH_COOKIE_NAME,
-			httpOnly: true,
+			httpOnly: false,
 			secure: SECURE_COOKIE,
 			// pocketbase expects a string like 'none'|'lax'|'strict' (case-insensitive)
 			sameSite: SAME_SITE.toLowerCase(),
