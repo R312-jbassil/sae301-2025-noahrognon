@@ -214,40 +214,40 @@ import loginImageUrl from "../assets/loginimage.png";
 </Layout>
 
 <script type="module">
-	const form = document.querySelector("#login-form");
-	const feedback = document.querySelector("#login-feedback");
+	const form = document.querySelector('#login-form');
+	const feedback = document.querySelector('#login-feedback');
 	const submitButton = form?.querySelector('button[type="submit"]');
-	const passwordInput = document.querySelector("#password");
-	const togglePasswordButton = document.querySelector("#toggle-password");
+	const passwordInput = document.querySelector('#password');
+	const togglePasswordButton = document.querySelector('#toggle-password');
 
 	const redirectTarget =
-		new URLSearchParams(window.location.search).get("redirect") ??
-		"/mon-compte";
-	const urlError = new URLSearchParams(window.location.search).get("error");
+		new URLSearchParams(window.location.search).get('redirect') ??
+		'/mon-compte';
+	const urlError = new URLSearchParams(window.location.search).get('error');
 
-	function showFeedback(message, type = "error") {
+	function showFeedback(message, type = 'error') {
 		if (!feedback) return;
 		feedback.textContent = message;
-		feedback.classList.remove("hidden", "text-[#F28B82]", "text-[#81C995]");
-		if (type === "success") {
-			feedback.classList.add("text-[#81C995]");
+		feedback.classList.remove('hidden', 'text-[#F28B82]', 'text-[#81C995]');
+		if (type === 'success') {
+			feedback.classList.add('text-[#81C995]');
 		} else {
-			feedback.classList.add("text-[#F28B82]");
+			feedback.classList.add('text-[#F28B82]');
 		}
 	}
 
 	function clearFeedback() {
 		if (!feedback) return;
-		feedback.textContent = "";
-		feedback.classList.add("hidden");
+		feedback.textContent = '';
+		feedback.classList.add('hidden');
 	}
 
 	function setLoading(button, isLoading) {
 		if (!button) return;
 		button.disabled = isLoading;
-		button.classList.toggle("opacity-70", isLoading);
-		button.classList.toggle("cursor-not-allowed", isLoading);
-		button.setAttribute("aria-busy", isLoading ? "true" : "false");
+		button.classList.toggle('opacity-70', isLoading);
+		button.classList.toggle('cursor-not-allowed', isLoading);
+		button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
 	}
 
 	if (urlError) {
@@ -255,56 +255,72 @@ import loginImageUrl from "../assets/loginimage.png";
 	}
 
 	if (togglePasswordButton && passwordInput) {
-		togglePasswordButton.addEventListener("click", () => {
-			const isText = passwordInput.type === "text";
-			passwordInput.type = isText ? "password" : "text";
+		togglePasswordButton.addEventListener('click', () => {
+			const isText = passwordInput.type === 'text';
+			passwordInput.type = isText ? 'password' : 'text';
 			togglePasswordButton.setAttribute(
-				"aria-label",
-				isText ? "Afficher le mot de passe" : "Masquer le mot de passe",
+				'aria-label',
+				isText ? 'Afficher le mot de passe' : 'Masquer le mot de passe'
 			);
 		});
 	}
 
 	if (form && submitButton) {
-		form.addEventListener("submit", async (event) => {
+		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			clearFeedback();
 
 			const formData = new FormData(form);
-			const email = (formData.get("email") ?? "").toString().trim();
-			const password = (formData.get("password") ?? "").toString();
+			const email = (formData.get('email') ?? '').toString().trim();
+			const password = (formData.get('password') ?? '').toString();
 
 			if (!email || !password) {
-				showFeedback(
-					"Veuillez renseigner votre email et votre mot de passe.",
-				);
+				showFeedback('Veuillez renseigner votre email et votre mot de passe.');
 				return;
 			}
 
 			setLoading(submitButton, true);
 
 			try {
-				const response = await fetch("/besoin/auth/login", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
+				const endpoint = new URL('/besoin/auth/login', window.location.origin);
+				endpoint.searchParams.set('redirect', redirectTarget);
+
+				const response = await fetch(endpoint, {
+					headers: { 'Content-Type': 'application/json' },
+					method: 'POST',
+					credentials: 'include',
 					body: JSON.stringify({ email, password })
 				});
 
-				const data = await response.json();
-
-				if (!response.ok) {
-					throw new Error(data?.error ?? "Identifiants invalides.");
+				if (response.redirected) {
+					window.location.href = response.url;
+					return;
 				}
 
-				showFeedback("Connexion reussie. Redirection...", "success");
-				setTimeout(() => {
-					window.location.href = redirectTarget;
-				}, 600);
+				if (response.status === 303) {
+					const locationHeader = response.headers.get('Location') ?? redirectTarget;
+					window.location.href = locationHeader;
+					return;
+				}
+
+				const contentType = response.headers.get('Content-Type') ?? '';
+				const data = contentType.includes('application/json') ? await response.json() : null;
+
+				if (!response.ok) {
+					const message = data?.error ?? 'Identifiants invalides.';
+					throw new Error(message);
+				}
+
+				if (data?.redirect) {
+					window.location.href = data.redirect;
+					return;
+				}
+
+				window.location.href = redirectTarget;
 			} catch (error) {
 				const message =
 					error?.message ??
-					"Echec de la connexion. Veuillez verifier vos identifiants.";
+					'Echec de la connexion. Veuillez verifier vos identifiants.';
 				showFeedback(message);
 			} finally {
 				setLoading(submitButton, false);
@@ -312,3 +328,6 @@ import loginImageUrl from "../assets/loginimage.png";
 		});
 	}
 </script>
+
+
+

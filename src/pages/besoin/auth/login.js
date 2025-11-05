@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase'
-import { exportAuthCookie } from '../../../utils/auth.js'
+import { exportAuthCookie, splitCookieHeader } from '../../../utils/auth.js'
 import { PB_BASE_URL } from '../../../utils/pb.js'
 
 export const prerender = false
@@ -21,7 +21,8 @@ export const POST = async ({ request }) => {
 
 	if (!email || !password) {
 		return new Response(JSON.stringify({ error: 'Identifiants requis.' }), {
-			status: 400
+			status: 400,
+			headers: { 'Content-Type': 'application/json' }
 		})
 	}
 
@@ -30,14 +31,14 @@ export const POST = async ({ request }) => {
 	try {
 		const authData = await pb.collection('users').authWithPassword(email, password)
 		const cookie = exportAuthCookie(pb)
+		const headers = new Headers()
+		splitCookieHeader(cookie).forEach((c) => headers.append('Set-Cookie', c))
 
-		// Build headers and append Set-Cookie entries safely (support multi-line)
-		const headers = new Headers({ 'Content-Type': 'application/json' })
-		const cookieParts = cookie ? cookie.split(/\r?\n/).filter(Boolean) : []
-		cookieParts.forEach((c) => headers.append('Set-Cookie', c))
+		const redirect = new URL(request.url).searchParams.get('redirect') ?? '/mon-compte'
+		headers.set('Location', redirect)
 
-		return new Response(JSON.stringify({ user: authData.record }), {
-			status: 200,
+		return new Response(null, {
+			status: 303,
 			headers
 		})
 	} catch (error) {
@@ -48,4 +49,3 @@ export const POST = async ({ request }) => {
 		})
 	}
 }
-

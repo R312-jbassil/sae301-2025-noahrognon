@@ -1,7 +1,8 @@
 import {
 	handleAuthFromCookies,
 	exportAuthCookie,
-	clearAuthCookie
+	clearAuthCookie,
+	splitCookieHeader
 } from '../../../utils/auth.js'
 import PocketBase from 'pocketbase'
 import { PB_BASE_URL } from '../../../utils/pb.js'
@@ -14,20 +15,17 @@ export const GET = async ({ request }) => {
 	const { pb, authCookie } = await handleAuthFromCookies(request)
 
 	if (!pb.authStore?.isValid || !pb.authStore.model) {
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		splitCookieHeader(clearAuthCookie()).forEach((c) => headers.append('Set-Cookie', c))
 		return new Response(JSON.stringify({ user: null }), {
 			status: 200,
-			headers: {
-				'Content-Type': 'application/json',
-				'Set-Cookie': clearAuthCookie()
-			}
+			headers
 		})
 	}
 
 	const refreshedCookie = authCookie ?? exportAuthCookie(pb)
-
 	const headers = new Headers({ 'Content-Type': 'application/json' })
-	const cookieParts = refreshedCookie ? refreshedCookie.split(/\r?\n/).filter(Boolean) : []
-	cookieParts.forEach((c) => headers.append('Set-Cookie', c))
+	splitCookieHeader(refreshedCookie).forEach((c) => headers.append('Set-Cookie', c))
 
 	return new Response(JSON.stringify({ user: pb.authStore.model }), {
 		status: 200,
@@ -53,19 +51,20 @@ export const POST = async ({ request }) => {
 		}
 
 		const cookie = exportAuthCookie(pb)
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		splitCookieHeader(cookie).forEach((c) => headers.append('Set-Cookie', c))
+
 		return new Response(JSON.stringify({ ok: true, user: pb.authStore.model }), {
 			status: 200,
-			headers: {
-				'Content-Type': 'application/json',
-				'Set-Cookie': cookie
-			}
+			headers
 		})
 	} catch (error) {
 		console.error('session post error', error)
+		const headers = new Headers({ 'Content-Type': 'application/json' })
+		splitCookieHeader(clearAuthCookie()).forEach((c) => headers.append('Set-Cookie', c))
 		return new Response(JSON.stringify({ ok: false, error: 'invalid-session' }), {
 			status: 401,
-			headers: { 'Content-Type': 'application/json', 'Set-Cookie': clearAuthCookie() }
+			headers
 		})
 	}
 }
-
