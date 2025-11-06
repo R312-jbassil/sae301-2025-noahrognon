@@ -288,7 +288,7 @@ import loginImageUrl from "../assets/loginimage.png";
 					"/besoin/auth/login",
 					window.location.origin,
 				);
-				endpoint.searchParams.set("redirect", redirectTarget);
+				// endpoint.searchParams.set("redirect", redirectTarget);
 
 				const response = await fetch(endpoint, {
 					headers: { "Content-Type": "application/json" },
