@@ -1,0 +1,8 @@
+URL APPLICATION WEB : https://lunette.noahrognon.fr 
+
+Depot GITHUB : https://github.com/R312-jbassil/sae301-2025-noahrognon/ 
+
+Lien base de données deploye : https://lunette.noahrognon.fr/_/
+login : noah.rognon@gmail.com
+MDP : SAE3012025
+
