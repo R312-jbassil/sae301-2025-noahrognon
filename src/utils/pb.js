@@ -26,3 +26,18 @@ export const createPocketBaseClient = () => new PocketBase(PB_BASE_URL)
 
 export default createPocketBaseClient()
 
+export const isRequestSecure = (request) => {
+	if (!request) return false
+	const forwardedProto = request.headers?.get?.('x-forwarded-proto')
+	if (forwardedProto) {
+		return forwardedProto.split(',')[0]?.trim()?.toLowerCase() === 'https'
+	}
+
+	try {
+		const url = new URL(request.url ?? '')
+		return url.protocol === 'https:'
+	} catch {
+		return false
+	}
+}
+

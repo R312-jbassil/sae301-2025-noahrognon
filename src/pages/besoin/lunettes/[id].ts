@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { applyCookies, handleAuthFromCookies } from '../../../utils/auth.js';
+import { createPocketBaseClient } from '../../../utils/pb.js';
 
 export const prerender = false;
 
@@ -14,12 +14,10 @@ const slugify = (value: string | null | undefined) =>
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
 
-export const GET: APIRoute = async ({ params, request, cookies }) => {
+export const GET: APIRoute = async ({ params, locals }) => {
 	const { id } = params;
-	const { pb, authCookie } = await handleAuthFromCookies(request);
-	if (authCookie) {
-		applyCookies(cookies, authCookie);
-	}
+	const pb = locals?.pb ?? createPocketBaseClient();
+	const userId = locals?.user?.id ?? pb.authStore?.model?.id ?? null;
 
 	const headers = { 'Content-Type': 'application/json' };
 
@@ -30,7 +28,7 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
 		});
 	}
 
-	if (!pb?.authStore?.isValid || !pb.authStore.model?.id) {
+	if (!pb?.authStore?.isValid || !userId) {
 		return new Response(JSON.stringify({ ok: false, error: 'not-authenticated' }), {
 			status: 401,
 			headers
@@ -38,7 +36,6 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
 	}
 
 	try {
-		const userId = pb.authStore.model.id;
 		const compose = await pb
 			.collection('Compose')
 			.getFirstListItem(

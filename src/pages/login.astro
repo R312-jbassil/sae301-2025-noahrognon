@@ -1,6 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import loginImageUrl from "../assets/loginimage.png";
+
+const loggedIn = Astro.locals.user;
+if (loggedIn) {
+	const target = Astro.url.searchParams.get("redirect") ?? "/mon-compte";
+	return Astro.redirect(target);
+}
 ---
 
 <Layout
@@ -167,7 +173,7 @@ import loginImageUrl from "../assets/loginimage.png";
 					<p>
 						Pas encore de compte ?
 						<a
-							href="/register"
+							href="/signup"
 							class="font-semibold text-[#D1B17A] underline-offset-2 hover:underline"
 							set:html={"Cr&eacute;er un compte"}
 						/>
@@ -214,6 +220,7 @@ import loginImageUrl from "../assets/loginimage.png";
 </Layout>
 
 <script type="module">
+	localStorage.removeItem("user");
 	const form = document.querySelector("#login-form");
 	const feedback = document.querySelector("#login-feedback");
 	const submitButton = form?.querySelector('button[type="submit"]');
@@ -284,50 +291,31 @@ import loginImageUrl from "../assets/loginimage.png";
 			setLoading(submitButton, true);
 
 			try {
-				const endpoint = new URL(
-					"/besoin/auth/login",
-					window.location.origin,
-				);
-				// endpoint.searchParams.set("redirect", redirectTarget);
-
-				const response = await fetch(endpoint, {
+				const response = await fetch("/api/login", {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					credentials: "include",
 					body: JSON.stringify({ email, password }),
 				});
 
-				// if (response.redirected) {
-				// 	window.location.href = response.url;
-				// 	return;
-				// }
-
-				// if (response.status === 303) {
-				// 	const locationHeader = response.headers.get('Location') ?? redirectTarget;
-				// 	window.location.href = locationHeader;
-				// 	return;
-				// }
-
-				const contentType = response.headers.get("Content-Type") ?? "";
-				const data = contentType.includes("application/json")
-					? await response.json()
-					: null;
+				const data = await response.json().catch(() => null);
 
 				if (!response.ok) {
-					const message = data?.error ?? "Identifiants invalides.";
+					const message =
+						data?.error === "missing-credentials"
+							? "Veuillez renseigner votre email et votre mot de passe."
+							: data?.error ?? "Identifiants invalides.";
 					throw new Error(message);
-				} else {
-					console.log("Login successful:", data);
-					window.location.href = "/mon-compte";
-					return;
 				}
 
-				// if (data?.redirect) {
-				// 	window.location.href = data.redirect;
-				// 	return;
-				// }
+				if (data?.user) {
+					localStorage.setItem("user", JSON.stringify(data.user));
+				}
 
-				// window.location.href = redirectTarget;
+				showFeedback("Connexion r&eacute;ussie ! Redirection...", "success");
+				setTimeout(() => {
+					window.location.href = redirectTarget;
+				}, 500);
 			} catch (error) {
 				const message =
 					error?.message ??

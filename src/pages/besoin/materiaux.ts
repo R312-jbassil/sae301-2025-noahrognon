@@ -1,14 +1,10 @@
 import type { APIRoute } from 'astro';
-import { applyCookies, handleAuthFromCookies } from '../../utils/auth.js';
+import { createPocketBaseClient } from '../../utils/pb.js';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, cookies }) => {
-	const { pb, authCookie } = await handleAuthFromCookies(request);
-	if (authCookie) {
-		applyCookies(cookies, authCookie);
-	}
-
+export const GET: APIRoute = async ({ locals }) => {
+	const pb = locals?.pb ?? createPocketBaseClient();
 	const headers = { 'Content-Type': 'application/json' };
 
 	try {

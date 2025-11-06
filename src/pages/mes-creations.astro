@@ -1,24 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { applyCookies, handleAuthFromCookies, splitCookieHeader } from '../utils/auth.js';
+import { createPocketBaseClient } from '../utils/pb.js';
 
 export const prerender = false;
 
-const { pb, authCookie } = await handleAuthFromCookies(Astro.request);
+const pb = Astro.locals.pb ?? createPocketBaseClient();
+const user = Astro.locals.user;
 
-if (authCookie) {
-	applyCookies(Astro.cookies, authCookie);
-	for (const entry of splitCookieHeader(authCookie)) {
-		Astro.response.headers.append('Set-Cookie', entry);
-	}
-}
-
-if (!pb.authStore?.isValid || !pb.authStore.model?.id) {
+if (!pb.authStore?.isValid || !user?.id) {
 	const redirectUrl = `/login?redirect=${encodeURIComponent(Astro.url.pathname)}`;
 	return Astro.redirect(redirectUrl);
 }
 
-const userId = pb.authStore.model.id;
+const userId = user.id;
 
 const LENS_LABELS: Record<string, string> = {
 	transparent: 'transparent',

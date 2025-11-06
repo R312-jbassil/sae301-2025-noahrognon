@@ -1,6 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import loginImageUrl from '../assets/loginimage.png';
+
+const existingUser = Astro.locals.user;
+if (existingUser) {
+	return Astro.redirect('/mon-compte');
+}
 ---
 
 <Layout
@@ -184,49 +189,44 @@ import loginImageUrl from '../assets/loginimage.png';
 			setLoading(submitButton, true);
 
 			try {
-				const endpoint = new URL('/besoin/auth/register', window.location.origin);
-				endpoint.searchParams.set('redirect', redirectTarget);
-
-				const response = await fetch(endpoint, {
+				const response = await fetch('/api/signup', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					credentials: 'include',
 					body: JSON.stringify(payload)
 				});
 
-				if (response.redirected) {
-					window.location.href = response.url;
-					return;
-				}
-
-				if (response.status === 303) {
-					const locationHeader = response.headers.get('Location') ?? redirectTarget;
-					window.location.href = locationHeader;
-					return;
-				}
-
-				const contentType = response.headers.get('Content-Type') ?? '';
-				const data = contentType.includes('application/json') ? await response.json() : null;
+				const data = await response.json().catch(() => null);
 
 				if (!response.ok) {
-					const message = data?.error ?? 'Impossible de creer le compte.';
+					const message =
+						data?.error === 'password-mismatch'
+							? 'Les mots de passe ne correspondent pas.'
+							: data?.error === 'missing-fields'
+							? 'Merci de remplir tous les champs requis.'
+							: data?.error === 'signup-failed'
+							? 'Impossible de cr&eacute;er le compte. Veuillez r&eacute;essayer plus tard.'
+							: 'Impossible de cr&eacute;er le compte.';
 					throw new Error(message);
 				}
 
-				if (data?.redirect) {
-					window.location.href = data.redirect;
-					return;
+				if (data?.user) {
+					localStorage.setItem('user', JSON.stringify(data.user));
 				}
 
-				window.location.href = redirectTarget;
+				showFeedback('Compte cr&eacute;&eacute; avec succ&egrave;s&thinsp;! Redirection...', 'success');
+				setTimeout(() => {
+					window.location.href = redirectTarget;
+				}, 900);
 			} catch (error) {
-				showFeedback(error?.message ?? 'Une erreur est survenue.');
+				const message =
+					error?.message ?? 'Impossible de cr&eacute;er le compte. Veuillez r&eacute;essayer plus tard.';
+				showFeedback(message);
 			} finally {
 				setLoading(submitButton, false);
 			}
 		});
 	}
-
 </script>
 
 

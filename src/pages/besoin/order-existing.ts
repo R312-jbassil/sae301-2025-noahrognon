@@ -1,19 +1,16 @@
 import type { APIRoute } from 'astro';
-import { applyCookies, handleAuthFromCookies } from '../../utils/auth.js';
+import { createPocketBaseClient } from '../../utils/pb.js';
 
 export const prerender = false;
 
 const escapeValue = (value: string) => value.replace(/"/g, '\\"');
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-	const { pb, authCookie } = await handleAuthFromCookies(request);
-	if (authCookie) {
-		applyCookies(cookies, authCookie);
-	}
-
+export const POST: APIRoute = async ({ request, locals }) => {
+	const pb = locals?.pb ?? createPocketBaseClient();
 	const headers = { 'Content-Type': 'application/json' };
+	const userId = locals?.user?.id ?? pb.authStore?.model?.id ?? null;
 
-	if (!pb?.authStore?.isValid || !pb.authStore.model?.id) {
+	if (!pb?.authStore?.isValid || !userId) {
 		return new Response(JSON.stringify({ ok: false, error: 'not-authenticated' }), {
 			status: 401,
 			headers
@@ -28,8 +25,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 				headers
 			});
 		}
-
-		const userId = pb.authStore.model.id;
 
 		const lunette = await pb
 			.collection('lunette')

@@ -1,25 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { applyCookies, handleAuthFromCookies, splitCookieHeader } from "../utils/auth.js";
 
 export const prerender = false;
 
-const { pb, authCookie } = await handleAuthFromCookies(Astro.request);
+const user = Astro.locals.user;
 
-if (authCookie) {
-	applyCookies(Astro.cookies, authCookie);
-	for (const entry of splitCookieHeader(authCookie)) {
-		Astro.response.headers.append("Set-Cookie", entry);
-	}
+if (!user) {
+	const redirectUrl = `/login?redirect=${encodeURIComponent(Astro.url.pathname)}`;
+	return Astro.redirect(redirectUrl);
 }
-
-if (!pb.authStore?.isValid || !pb.authStore.model) {
-	return Astro.redirect(
-		`/login?redirect=${encodeURIComponent(Astro.url.pathname)}`,
-	);
-}
-
-const user = pb.authStore.model;
 
 const memberSince = new Date(user.created);
 const memberSinceLabel = memberSince.toLocaleDateString("fr-FR", {
@@ -348,7 +337,7 @@ const stats = [
 		logoutButton.addEventListener("click", async () => {
 			logoutButton.setAttribute("aria-busy", "true");
 			try {
-				await fetch("/besoin/auth/logout", { method: "POST" });
+				await fetch("/api/logout", { method: "POST" });
 			} catch (error) {
 				console.error("Logout failed", error);
 			} finally {
