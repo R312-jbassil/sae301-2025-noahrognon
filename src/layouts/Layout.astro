@@ -10,6 +10,9 @@ const {
 	showPromoBar = true,
 	promoMessage = '✨ Livraison offerte et gravure personnalisée sur chaque commande cette semaine.',
 	promoHref = '/configurateur',
+	description = 'TaVue, atelier de lunetterie française : personnalisez vos montures avec IA et savoir-faire artisanal.',
+	image = 'https://lunette.noahrognon.fr/og-cover.jpg',
+	url = 'https://lunette.noahrognon.fr',
 	bodyClass = '',
 	mainClass = ''
 } = Astro.props;
@@ -20,13 +23,28 @@ const {
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
+		<meta name="description" content={description} />
+		<meta name="robots" content="index, follow" />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={url} />
+		<meta property="og:image" content={image} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={image} />
 		<link rel="icon" type="image/svg+xml" href="/logos.svg" sizes="512x512" />
 		<link rel="icon" type="image/png" href="/logos-512.png" sizes="512x512" />
 		<link rel="apple-touch-icon" href="/logos-512.png" sizes="512x512" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<script
+			is:inline
+		>{`(function(){try{const KEY='tavue-theme';const stored=localStorage.getItem(KEY);const prefers=window.matchMedia('(prefers-color-scheme: dark)').matches;const theme=stored??(prefers?'dark':'light');const root=document.documentElement;root.classList.remove('light','dark');root.classList.add(theme);root.dataset.theme=theme;}catch(e){}})();`}</script>
+		<script type="module" src="/scripts/theme.js" defer></script>
 	</head>
-	<body class={`bg-tavue-anthracite font-inter text-tavue-off-white antialiased ${bodyClass}`}>
+	<body class={`theme-body theme-bg theme-text font-inter antialiased ${bodyClass}`}>
 		{showHeader && <Header />}
 		{showPromoBar && (
 			<div class="bg-gradient-to-r from-[#1F1A12] via-[#2A2115] to-[#1C1A17] text-[#F2E7D5]">
@@ -50,7 +68,7 @@ const {
 				</div>
 			</div>
 		)}
-		<main class={mainClass}>
+		<main class={`theme-bg theme-text transition-colors duration-300 ${mainClass}`}>
 			<slot />
 		</main>
 		{showFooter && <Footer />}

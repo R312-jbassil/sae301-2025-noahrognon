@@ -1,1 +1,84 @@
 @import "tailwindcss";
+
+:root {
+	color-scheme: dark light;
+	--theme-bg: #0f1215;
+	--theme-surface: #16191d;
+	--theme-surface-soft: #1d2025;
+	--theme-border: #23272d;
+	--theme-text: #f5efe6;
+	--theme-text-muted: #9fa6b2;
+}
+
+html.light {
+	--theme-bg: #f5f3ee;
+	--theme-surface: #ffffff;
+	--theme-surface-soft: #f1ece1;
+	--theme-border: #ded6c8;
+	--theme-text: #26262b;
+	--theme-text-muted: #4f5662;
+}
+
+body.theme-body {
+	background-color: var(--theme-bg);
+	color: var(--theme-text);
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-bg {
+	background-color: var(--theme-bg) !important;
+	color: var(--theme-text) !important;
+}
+
+.theme-surface {
+	background-color: var(--theme-surface) !important;
+	color: var(--theme-text) !important;
+}
+
+.theme-surface-soft {
+	background-color: var(--theme-surface-soft) !important;
+	color: var(--theme-text) !important;
+}
+
+.theme-text {
+	color: var(--theme-text) !important;
+}
+
+.theme-text-muted {
+	color: var(--theme-text-muted) !important;
+}
+
+.theme-border {
+	border-color: var(--theme-border) !important;
+}
+
+html.light .bg-neutral-950,
+html.light .bg-neutral-900,
+html.light [class*="bg-[#0"],
+html.light [class*="bg-[#1"] {
+	background-color: var(--theme-surface) !important;
+	color: var(--theme-text) !important;
+}
+
+html.light [class*="border-[#0"],
+html.light [class*="border-[#1"],
+html.light .border-neutral-800,
+html.light .border-neutral-700 {
+	border-color: var(--theme-border) !important;
+}
+
+html.light .text-[#F5EFE6],
+html.light .text-[#CFCAC2],
+html.light .text-[#A5B2BC],
+html.light .text-[#A5AAB3],
+html.light .text-[#D5DEE8],
+html.light .text-[#C8CED8],
+html.light .text-[#A9B0BB],
+html.light .text-[#929DA8] {
+	color: var(--theme-text) !important;
+}
+
+html.light .text-[#9BA1AB],
+html.light .text-[#8F97A5] {
+	color: var(--theme-text-muted) !important;
+}

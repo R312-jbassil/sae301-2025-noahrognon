@@ -59,6 +59,8 @@ let gVerreD;
 let txtGravure;
 let aiSummaryEl;
 let aiButton;
+let bridgeValueEl;
+let lensSizeValueEl;
 
 const getBaseTransform = (node) => node?.dataset.baseTransform || '';
 
@@ -125,9 +127,11 @@ function syncMaterialStateFromSelects() {
 function updateFinishButtons() {
 	document.querySelectorAll('.finish-btn').forEach((btn) => {
 		if (btn.dataset.finish === state.finish) {
-			btn.classList.add('ring-2', 'ring-amber-500', 'bg-amber-500/20');
+			btn.classList.add('border-amber-500', 'shadow-[0_12px_30px_rgba(209,177,122,0.25)]');
+			btn.classList.remove('border-neutral-700');
 		} else {
-			btn.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-500/20');
+			btn.classList.remove('border-amber-500', 'shadow-[0_12px_30px_rgba(209,177,122,0.25)]');
+			btn.classList.add('border-neutral-700');
 		}
 	});
 }
@@ -211,6 +215,8 @@ function applyAll() {
 	updatePrice();
 	updateProgress();
 	updateFinishButtons();
+	if (bridgeValueEl) bridgeValueEl.textContent = state.bridge;
+	if (lensSizeValueEl) lensSizeValueEl.textContent = state.lensSize;
 }
 
 function colorize(group, fill, opacity = 1) {
@@ -308,6 +314,8 @@ function updateProgress() {
 function bindUI() {
 	aiSummaryEl = $('#aiSummary');
 	aiButton = $('#btnInspire');
+	bridgeValueEl = $('#bridgeValue');
+	lensSizeValueEl = $('#lensSizeValue');
 	$('#materialFrame').addEventListener('change', (e) => {
 		const option = e.target.selectedOptions?.[0];
 		state.materialFrame = option?.value ?? state.materialFrame;
@@ -326,10 +334,12 @@ function bindUI() {
 	});
 	$('#bridge').addEventListener('input', (e) => {
 		state.bridge = Number(e.target.value);
+		if (bridgeValueEl) bridgeValueEl.textContent = state.bridge;
 		applyAll();
 	});
 	$('#lensSize').addEventListener('input', (e) => {
 		state.lensSize = Number(e.target.value);
+		if (lensSizeValueEl) lensSizeValueEl.textContent = state.lensSize;
 		applyAll();
 	});
 	$('#lensColor').addEventListener('change', (e) => {
@@ -528,7 +538,7 @@ async function requestAIInspiration(promptText) {
 	localStorage.removeItem(AI_STORAGE_KEY);
 	setAiLoading(true);
 	try {
-		const response = await fetch('/api/ai-lunettes', {
+		const response = await fetch('/ia/ai-lunettes', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ prompt: promptText })

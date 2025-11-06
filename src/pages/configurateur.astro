@@ -25,7 +25,7 @@ import Layout from '../layouts/Layout.astro';
 			</header>
 
 			<div class="grid grid-cols-12 gap-6">
-				<section class="col-span-12 lg:col-span-8 space-y-6">
+				<section class="col-span-12 lg:col-span-8 space-y-6 lg:sticky lg:top-6 lg:self-start">
 					<div
 						id="stage"
 						class="flex aspect-[16/9] items-center justify-center rounded-[2rem] bg-gradient-to-b from-neutral-900 to-black p-4 shadow-[0_35px_70px_rgba(0,0,0,0.55)]"
@@ -33,7 +33,7 @@ import Layout from '../layouts/Layout.astro';
 						<div id="svgHost" class="h-full w-full"></div>
 					</div>
 
-					<div class="rounded-[1.8rem] border border-neutral-800 bg-neutral-900/80 p-5 shadow-[0_24px_45px_rgba(0,0,0,0.45)] md:sticky md:top-6 md:z-20 md:p-6">
+					<div class="rounded-[1.8rem] border border-neutral-800 bg-neutral-900/80 p-5 shadow-[0_24px_45px_rgba(0,0,0,0.45)] md:p-6">
 						<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 							<div id="recap" class="space-y-1 text-sm text-neutral-300">
 								Prix&nbsp;: <span id="price">250</span>&euro;

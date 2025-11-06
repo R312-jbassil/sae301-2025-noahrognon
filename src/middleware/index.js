@@ -1,7 +1,7 @@
 import { createPocketBaseClient } from '../utils/pb.js'
 
 const AUTH_COOKIE_NAME = 'pb_auth'
-const AUTH_WHITELISTED_API = new Set(['/api/login', '/api/signup'])
+const AUTH_WHITELISTED_API = new Set(['/v2/login', '/v2/signup'])
 const PROTECTED_PATH_PREFIXES = ['/mon-compte', '/mes-creations', '/besoin']
 
 const buildCookieString = (value) => {
@@ -32,7 +32,7 @@ export const onRequest = async (context, next) => {
 	context.locals.pb = pb
 
 	const pathname = context.url.pathname
-	const isApiRoute = pathname.startsWith('/api/')
+	const isApiRoute = pathname.startsWith('/v2/')
 
 	if (isApiRoute && !context.locals.user && !AUTH_WHITELISTED_API.has(pathname)) {
 		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
