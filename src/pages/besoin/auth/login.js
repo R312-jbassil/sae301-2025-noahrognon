@@ -38,7 +38,7 @@ export const POST = async ({ request, cookies }) => {
 		for (const entry of splitCookieHeader(cookie)) {
 			headers.append('Set-Cookie', entry)
 		}
-
+		
 		return new Response(JSON.stringify({ ok: true, redirect }), {
 			status: 200,
 			headers
