@@ -117,7 +117,7 @@ if (form && promptInput) {
 		setLoading(true);
 
 		try {
-			const response = await fetch('/ia/ai-lunettes', {
+		const response = await fetch('/connexion/ai-lunettes', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ prompt })

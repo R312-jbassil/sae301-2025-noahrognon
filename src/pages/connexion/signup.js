@@ -65,7 +65,6 @@ export const POST = async ({ request, cookies }) => {
 		})
 
 		const authData = await pb.collection(Collections.Users).authWithPassword(email, password)
-
 		const exported = pb.authStore.exportToCookie()
 		const value = parseExportedCookie(exported)
 

@@ -189,7 +189,7 @@ if (existingUser) {
 			setLoading(submitButton, true);
 
 			try {
-				const response = await fetch('/v2/signup', {
+				const response = await fetch('/connexion/signup', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					credentials: 'include',
@@ -228,6 +228,4 @@ if (existingUser) {
 		});
 	}
 </script>
-
-
 
