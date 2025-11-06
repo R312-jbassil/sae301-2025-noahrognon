@@ -3,7 +3,12 @@ import Layout from '../layouts/Layout.astro';
 
 ---
 
-<Layout title="Configurateur | TaVue">
+<Layout
+	title="Configurateur TaVue | Assemblez vos lunettes sur-mesure"
+	description="Personnalisez vos lunettes TaVue : matériaux, verres, gravure et suggestions IA pour une monture unique fabriquée en France."
+	url="https://lunette.noahrognon.fr/configurateur"
+	image="https://lunette.noahrognon.fr/og-cover-configurateur.jpg"
+>
 	<main class="bg-neutral-950 text-neutral-100">
 		<div class="mx-auto max-w-6xl px-4 py-10">
 			<header class="mb-8">
@@ -20,30 +25,36 @@ import Layout from '../layouts/Layout.astro';
 			</header>
 
 			<div class="grid grid-cols-12 gap-6">
-				<section class="col-span-12 lg:col-span-8 space-y-4">
+				<section class="col-span-12 lg:col-span-8 space-y-6">
 					<div
 						id="stage"
-						class="flex aspect-[16/9] items-center justify-center rounded-2xl bg-gradient-to-b from-neutral-900 to-black p-4 shadow-xl"
+						class="flex aspect-[16/9] items-center justify-center rounded-[2rem] bg-gradient-to-b from-neutral-900 to-black p-4 shadow-[0_35px_70px_rgba(0,0,0,0.55)]"
 					>
 						<div id="svgHost" class="h-full w-full"></div>
 					</div>
 
-					<div class="rounded-xl border border-neutral-800 bg-neutral-900/70 p-4">
+					<div class="rounded-[1.8rem] border border-neutral-800 bg-neutral-900/80 p-5 shadow-[0_24px_45px_rgba(0,0,0,0.45)] md:sticky md:top-6 md:z-20 md:p-6">
 						<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-							<div id="recap" class="text-sm text-neutral-300">
+							<div id="recap" class="space-y-1 text-sm text-neutral-300">
 								Prix&nbsp;: <span id="price">250</span>&euro;
 								<br class="md:hidden" />
 								<span class="md:ml-4"
 									>Progression <span id="progress">0%</span></span
 								>
+								<p class="text-xs text-neutral-500">
+									Personnalisez chaque option, sauvegardez puis commandez en quelques clics.
+								</p>
 							</div>
-							<p id="aiSummary" class="hidden text-xs text-amber-300 md:text-right"></p>
+							<p id="aiSummary" class="hidden max-w-md text-xs text-amber-300 md:text-right"></p>
 							<div class="flex flex-wrap gap-2">
 								<button
 									id="btnInspire"
 									type="button"
-									class="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-500/20"
+									class="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/15 px-5 py-2 text-sm font-semibold text-amber-200 shadow-[0_10px_25px_rgba(209,177,122,0.25)] transition hover:border-amber-400 hover:bg-amber-500/25"
 								>
+									<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" class="h-4 w-4">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M10 3.333v13.334M3.333 10H16.667"></path>
+									</svg>
 									Inspiration IA
 								</button>
 								<button
@@ -61,11 +72,59 @@ import Layout from '../layouts/Layout.astro';
 									Commander
 								</button>
 							</div>
+							<p class="rounded-2xl border border-[#2B3035] bg-[#181B1F] px-4 py-3 text-xs text-[#8F97A5]">
+								<strong class="text-[#D1B17A]">Note pour le jury :</strong> je n’ai pas r&eacute;ussi &agrave; d&eacute;ployer la fonctionnalit&eacute; IA sur le VPS, mais elle fonctionne en local.
+								<a
+									class="ml-1 inline-flex items-center gap-1 font-semibold text-[#D1B17A] underline-offset-2 hover:underline"
+									href="https://youtu.be/McDEgoZuVz4"
+									target="_blank"
+									rel="noreferrer"
+								>
+									Voir vid&eacute;o
+									<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 11.5 11.5 4.5M6.5 4.5h5v5" />
+									</svg>
+								</a>
+							</p>
 						</div>
 					</div>
 				</section>
 
 				<aside class="col-span-12 space-y-6 lg:col-span-4">
+					<section class="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+						<p class="text-xs uppercase tracking-[0.35em] text-amber-300">Parcours</p>
+						<ol class="mt-4 space-y-3 text-sm text-[#C8CED8]">
+							<li class="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/70 p-3">
+								<span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">1</span>
+								<div>
+									<p class="font-semibold text-white">Choisissez vos matériaux</p>
+									<p class="text-xs text-neutral-500">Monture et branches harmonisées selon vos envies.</p>
+								</div>
+							</li>
+							<li class="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/70 p-3">
+								<span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">2</span>
+								<div>
+									<p class="font-semibold text-white">Ajustez dimensions &amp; couleurs</p>
+									<p class="text-xs text-neutral-500">Pont, taille des verres et teinte pour le confort.</p>
+								</div>
+							</li>
+							<li class="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/70 p-3">
+								<span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">3</span>
+								<div>
+									<p class="font-semibold text-white">Personnalisez la gravure</p>
+									<p class="text-xs text-neutral-500">Initiales, dates ou message discret.</p>
+								</div>
+							</li>
+							<li class="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/70 p-3">
+								<span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">4</span>
+								<div>
+									<p class="font-semibold text-white">Sauvegardez ou commandez</p>
+									<p class="text-xs text-neutral-500">Nous fabriquons votre paire sous 7 jours.</p>
+								</div>
+							</li>
+						</ol>
+					</section>
+
 					<section class="rounded-xl border border-neutral-800 bg-neutral-900/70 p-4">
 						<h2 class="mb-4 text-lg font-semibold text-white">
 							Mat&eacute;riaux
@@ -84,6 +143,9 @@ import Layout from '../layouts/Layout.astro';
 							<option value="or18k">Or 18K</option>
 							<option value="orrose">Or rose</option>
 						</select>
+						<p class="mt-2 text-xs text-neutral-500">
+							Conseil : combinez une monture contrastée avec des branches plus sobres pour équilibrer votre visage.
+						</p>
 
 						<label class="mt-4 mb-2 block text-sm font-medium text-neutral-400" for="materialTemples"
 							>Branches</label
@@ -99,6 +161,9 @@ import Layout from '../layouts/Layout.astro';
 							<option value="or18k">Or 18K</option>
 							<option value="orrose">Or rose</option>
 						</select>
+						<p class="mt-2 text-xs text-neutral-500">
+							Choisissez un matériau différent de la monture pour un effet bicolore très tendance.
+						</p>
 					</section>
 
 					<section class="rounded-xl border border-neutral-800 bg-neutral-900/70 p-4 space-y-4">
@@ -106,7 +171,10 @@ import Layout from '../layouts/Layout.astro';
 
 						<div>
 							<label class="mb-2 block text-sm font-medium text-neutral-400" for="bridge"
-								>Largeur du pont (mm)</label
+								>Largeur du pont (mm)
+								<span class="ml-2 rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-neutral-500"
+									><span id="bridgeValue">5</span> mm</span
+								></label
 							>
 							<input
 								id="bridge"
@@ -120,7 +188,10 @@ import Layout from '../layouts/Layout.astro';
 
 						<div>
 							<label class="mb-2 block text-sm font-medium text-neutral-400" for="lensSize"
-								>Taille des verres (1-10)</label
+								>Taille des verres (1-10)
+								<span class="ml-2 rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-neutral-500"
+									>niveau <span id="lensSizeValue">5</span></span
+								></label
 							>
 							<input
 								id="lensSize"
@@ -147,31 +218,37 @@ import Layout from '../layouts/Layout.astro';
 								<option value="vert">Vert polaris&eacute;</option>
 								<option value="rose">Rose teint&eacute;</option>
 							</select>
+							<p class="mt-2 text-xs text-neutral-500">
+								Avec l'IA, demandez par exemple &laquo;&nbsp;verres miroir dor&eacute;s pour l'&eacute;t&eacute;&nbsp;&raquo; ou &laquo;&nbsp;verres fum&eacute;s anti-reflets&nbsp;&raquo;.
+							</p>
 						</div>
 
 						<div>
 							<p class="mb-2 text-sm font-medium text-neutral-400">Finition</p>
-							<div class="flex flex-wrap gap-2">
+							<div class="grid gap-2 sm:grid-cols-3">
 								<button
 									type="button"
 									data-finish="brillant"
-									class="finish-btn rounded-lg border border-transparent bg-neutral-800 px-3 py-2 text-sm transition hover:border-amber-500"
+									class="finish-btn group rounded-2xl border border-neutral-700 bg-gradient-to-br from-white/10 via-neutral-700/40 to-neutral-900 px-3 py-3 text-left text-sm transition hover:border-amber-500"
 								>
-									Brillant
+									<span class="block font-semibold text-white">Brillant</span>
+									<span class="text-xs text-neutral-400">Reflets lumineux et finition premium.</span>
 								</button>
 								<button
 									type="button"
 									data-finish="mat"
-									class="finish-btn rounded-lg border border-transparent bg-neutral-800 px-3 py-2 text-sm transition hover:border-amber-500"
+									class="finish-btn group rounded-2xl border border-neutral-700 bg-neutral-900 px-3 py-3 text-left text-sm transition hover:border-amber-500"
 								>
-									Mat
+									<span class="block font-semibold text-white">Mat</span>
+									<span class="text-xs text-neutral-400">Toucher velouté, rendu contemporain.</span>
 								</button>
 								<button
 									type="button"
 									data-finish="satine"
-									class="finish-btn rounded-lg border border-transparent bg-neutral-800 px-3 py-2 text-sm transition hover:border-amber-500"
+									class="finish-btn group rounded-2xl border border-neutral-700 bg-gradient-to-r from-neutral-800 via-neutral-700/60 to-neutral-900 px-3 py-3 text-left text-sm transition hover:border-amber-500"
 								>
-									Satin&eacute;
+									<span class="block font-semibold text-white">Satin&eacute;</span>
+									<span class="text-xs text-neutral-400">Éclat doux, parfait pour des nuances ternes.</span>
 								</button>
 							</div>
 						</div>
