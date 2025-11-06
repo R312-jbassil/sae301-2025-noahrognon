@@ -4,6 +4,25 @@ const AUTH_COOKIE_NAME = 'pb_auth'
 const AUTH_WHITELISTED_API = new Set(['/v2/login', '/v2/signup'])
 const PROTECTED_PATH_PREFIXES = ['/mon-compte', '/mes-creations', '/besoin']
 
+const ensureGetSetCookiePolyfill = () => {
+	if (typeof Headers === 'undefined') return
+	const proto = Headers.prototype
+	if (typeof proto.getSetCookie === 'function') return
+
+	proto.getSetCookie = function () {
+		const header = this.get('set-cookie')
+		if (!header) return []
+		if (Array.isArray(header)) return header
+		return header
+			.split(/\r?\n/)
+			.flatMap((line) => line.split(/,(?=\s*[A-Za-z0-9-_]+=)/))
+			.map((item) => item.trim())
+			.filter(Boolean)
+	}
+}
+
+ensureGetSetCookiePolyfill()
+
 const shouldProtectPath = (pathname) =>
 	PROTECTED_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
 
@@ -26,9 +45,9 @@ export const onRequest = async (context, next) => {
 	context.locals.pb = pb
 
 	const pathname = context.url.pathname
-	const isApiRoute = pathname.startsWith('/v2/')
+	const isV2Route = pathname.startsWith('/v2/')
 
-	if (isApiRoute && !context.locals.user && !AUTH_WHITELISTED_API.has(pathname)) {
+	if (isV2Route && !context.locals.user && !AUTH_WHITELISTED_API.has(pathname)) {
 		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' }

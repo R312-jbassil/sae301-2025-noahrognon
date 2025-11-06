@@ -538,7 +538,7 @@ async function requestAIInspiration(promptText) {
 	localStorage.removeItem(AI_STORAGE_KEY);
 	setAiLoading(true);
 	try {
-		const response = await fetch('/api/ai-lunettes', {
+		const response = await fetch('/v2/ai-lunettes', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ prompt: promptText })
