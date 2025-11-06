@@ -31,9 +31,9 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22<xxx>
+        port: 22008
         source: "dist/*"
-        target: "/var/www/<dossier_app>/"
+        target: "/var/www/lunette/"
         strip_components: 1
         rm: false
         overwrite: true
