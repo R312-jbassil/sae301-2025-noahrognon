@@ -1,0 +1,124 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Inspiration IA | TaVue">
+	<main class="bg-[#0E0F11] text-[#F7F4ED]">
+		<section class="border-b border-[#1D1F22] bg-gradient-to-b from-[#15181C] to-[#111315]">
+			<div class="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-14 md:flex-row md:items-center md:py-18 lg:py-20">
+				<div class="flex-1 space-y-4">
+					<p class="text-xs uppercase tracking-[0.4em] text-[#C6A874]">Assistant IA</p>
+					<h1 class="font-playfair text-4xl font-semibold text-white md:text-5xl">
+						Imaginez vos lunettes idéales
+					</h1>
+					<p class="text-sm text-[#A5AAB3] md:text-base">
+						Décrivez votre style, vos envies ou l'occasion et laissez notre IA composer une monture
+						sur-mesure à partir de notre configurateur TaVue.
+					</p>
+				</div>
+				<div class="flex-1 rounded-3xl border border-[#25282D] bg-[#13161A] p-6 shadow-[0_35px_60px_-18px_rgba(0,0,0,0.55)]">
+					<ul class="space-y-4 text-sm text-[#C4C8D1]">
+						<li class="flex items-start gap-3">
+							<span class="mt-1 h-2.5 w-2.5 rounded-full bg-[#D1B17A]"></span>
+							<span>Propositions harmonisées avec nos matériaux, finitions et gravures.</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="mt-1 h-2.5 w-2.5 rounded-full bg-[#D1B17A]"></span>
+							<span>Résultats décrits clairement, prêts à être appliqués dans le configurateur.</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="mt-1 h-2.5 w-2.5 rounded-full bg-[#D1B17A]"></span>
+							<span>Personnalisez encore les détails avant de sauvegarder ou commander.</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-5xl px-6 py-14 lg:py-18">
+			<div class="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+				<article class="rounded-3xl border border-[#1F2328] bg-[#16191D] p-6 shadow-[0_24px_45px_-18px_rgba(0,0,0,0.6)] md:p-8">
+					<header class="space-y-3">
+						<h2 class="font-playfair text-2xl text-white md:text-3xl">Décrivez votre vision</h2>
+						<p class="text-sm text-[#9BA1AB]">
+							Exemples : <em>lunettes pour un mariage bohème</em>, <em>monture rétro pour l'été</em>,
+							<em>style minimaliste pour le quotidien</em>…
+						</p>
+					</header>
+
+					<form id="ai-form" class="mt-6 space-y-5" novalidate>
+						<div class="space-y-2">
+							<label for="aiPrompt" class="text-xs font-semibold uppercase tracking-[0.35em] text-[#B6A075]">
+								Votre demande
+							</label>
+							<textarea
+								id="aiPrompt"
+								name="prompt"
+								required
+								rows="6"
+								placeholder="Ex : Lunettes élégantes pour un dîner de printemps, avec une touche de doré et des verres légèrement teintés."
+								class="w-full rounded-2xl border border-[#262A30] bg-[#121417] px-4 py-3 text-sm text-[#F7F4ED] placeholder:text-[#4F5662] focus:border-[#D1B17A] focus:outline-none"
+							></textarea>
+						</div>
+
+						<div class="flex flex-wrap items-center gap-4">
+							<button
+								id="aiSubmit"
+								type="submit"
+								class="inline-flex items-center gap-2 rounded-full bg-[#D1B17A] px-5 py-2 text-sm font-semibold text-[#2F2719] transition hover:bg-[#C7A068]"
+							>
+								<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M10 3.333V16.666"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4.166 10H15.833"></path>
+								</svg>
+								Lancer la génération
+							</button>
+							<p id="aiStatus" class="text-xs text-[#E98074]"></p>
+						</div>
+					</form>
+				</article>
+
+				<article class="flex min-h-[26rem] flex-col rounded-3xl border border-[#1F2328] bg-[#14171B] p-6 shadow-[0_24px_45px_-18px_rgba(0,0,0,0.55)] md:p-8">
+					<header class="mb-5 flex items-center justify-between">
+						<h2 class="font-playfair text-2xl text-white md:text-3xl">Propositions</h2>
+						<span id="aiCount" class="text-xs uppercase tracking-[0.35em] text-[#757E89]">0 résultat</span>
+					</header>
+					<div
+						id="aiResults"
+						class="flex-1 space-y-5 overflow-y-auto rounded-2xl border border-dashed border-[#252931] bg-[#101315] p-4"
+					>
+						<div class="text-sm text-[#606873]">
+							Les recommandations apparaitront ici après la génération. Vous pourrez ensuite les appliquer
+							dans le configurateur.
+						</div>
+					</div>
+				</article>
+			</div>
+			<div class="mt-10 grid gap-4 rounded-3xl border border-[#1F2328] bg-[#13171B] p-6 md:grid-cols-3 md:p-8">
+				<div class="space-y-2">
+					<p class="text-xs uppercase tracking-[0.35em] text-[#D1B17A]">Tendance</p>
+					<p class="text-sm text-[#A6ACB6]">
+						<span class="font-semibold text-white">60&nbsp;%</span> des créations IA intègrent des touches
+						de doré et des verres miroir cette saison.
+					</p>
+				</div>
+				<div class="space-y-2">
+					<p class="text-xs uppercase tracking-[0.35em] text-[#D1B17A]">Astuce</p>
+					<p class="text-sm text-[#A6ACB6]">
+						Précisez l'ambiance (<em>soirée rooftop</em>, <em>look minimal pro</em>) pour des propositions
+						plus affutées.
+					</p>
+				</div>
+				<div class="space-y-2">
+					<p class="text-xs uppercase tracking-[0.35em] text-[#D1B17A]">Bonus fidélité</p>
+					<p class="text-sm text-[#A6ACB6]">
+						Appliquez une inspiration et commandez dans les 48h: <strong>+25 points</strong> sur votre
+						compte.
+					</p>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="/scripts/inspiration.js"></script>
+</Layout>

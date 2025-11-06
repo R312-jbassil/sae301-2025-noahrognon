@@ -130,9 +130,28 @@ const stats = [
 						D&eacute;connexion
 					</button>
 				</div>
-			</header>
+	</header>
 
-			<section class="grid gap-6 md:grid-cols-4">
+	<div class="mt-6 rounded-[2rem] border border-[#1E2329] bg-gradient-to-r from-[#1C2026] via-[#181C21] to-[#15181C] p-6 shadow-[0_18px_45px_rgba(0,0,0,0.35)] md:flex md:items-center md:justify-between md:p-8">
+		<div class="space-y-2 md:max-w-xl">
+			<p class="text-xs uppercase tracking-[0.35em] text-[#D1B17A]">Programme Ambassadeur</p>
+			<p class="text-sm text-[#A9B0BA]">
+				Invitez un proche à créer sa paire : <strong class="text-[#F5E4C2]">+60 points fidélité</strong> pour vous
+				et <strong class="text-[#F5E4C2]">gravure offerte</strong> pour lui.
+			</p>
+		</div>
+		<a
+			href="/inspiration"
+			class="mt-4 inline-flex items-center gap-2 rounded-full border border-[#D1B17A]/40 bg-[#201A13] px-5 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#F5E4C2] transition hover:border-[#D1B17A] md:mt-0"
+		>
+			Partager
+			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" class="h-3.5 w-3.5">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M5 6.667 8 4l3 2.667M8 4v8"></path>
+			</svg>
+		</a>
+	</div>
+
+	<section class="grid gap-6 md:grid-cols-4">
 				{
 					stats.map((item) => (
 						<div

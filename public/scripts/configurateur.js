@@ -42,6 +42,10 @@ const PRICING = {
 	engraving: 45
 };
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const AI_STORAGE_KEY = 'tavue.aiPreset';
+
 const $ = (sel) => document.querySelector(sel);
 const materialIdByCode = {};
 const materialCodeById = {};
@@ -53,6 +57,8 @@ let gPont;
 let gVerreG;
 let gVerreD;
 let txtGravure;
+let aiSummaryEl;
+let aiButton;
 
 const getBaseTransform = (node) => node?.dataset.baseTransform || '';
 
@@ -144,9 +150,13 @@ function setSelectValue(select, slug, materialId) {
 }
 
 function syncEditQueryParam() {
-	if (!state.editId || !window.history?.replaceState) return;
+	if (!window.history?.replaceState) return;
 	const url = new URL(window.location.href);
-	url.searchParams.set('edit', state.editId);
+	if (state.editId) {
+		url.searchParams.set('edit', state.editId);
+	} else {
+		url.searchParams.delete('edit');
+	}
 	window.history.replaceState({}, '', url.toString());
 }
 
@@ -296,6 +306,8 @@ function updateProgress() {
 }
 
 function bindUI() {
+	aiSummaryEl = $('#aiSummary');
+	aiButton = $('#btnInspire');
 	$('#materialFrame').addEventListener('change', (e) => {
 		const option = e.target.selectedOptions?.[0];
 		state.materialFrame = option?.value ?? state.materialFrame;
@@ -344,6 +356,13 @@ function bindUI() {
 
 	$('#btnSave').addEventListener('click', saveComposition);
 	$('#btnOrder').addEventListener('click', createOrder);
+	if (aiButton) {
+		aiButton.addEventListener('click', async () => {
+			const idea = prompt('Décrivez vos lunettes idéales (style, usage, ambiance...) :');
+			if (!idea) return;
+			await requestAIInspiration(idea);
+		});
+	}
 }
 
 function currentSVGString() {
@@ -391,6 +410,156 @@ async function persist(url) {
 	}
 }
 
+function applyOptionsPayload(options = {}, controls = {}) {
+	if (controls.resetEditId) {
+		state.editId = null;
+	}
+	if (Object.prototype.hasOwnProperty.call(controls, 'setEditId')) {
+		state.editId = controls.setEditId;
+	}
+
+	const frameSelect = $('#materialFrame');
+	const templeSelect = $('#materialTemples');
+
+	if (options.materialFrame || options.materialFrameId) {
+		setSelectValue(frameSelect, options.materialFrame, options.materialFrameId);
+	}
+	if (options.materialTemples || options.materialTemplesId) {
+		setSelectValue(templeSelect, options.materialTemples, options.materialTemplesId);
+	}
+
+	syncMaterialStateFromSelects();
+
+	if (options.materialFrameLabel) state.materialFrameLabel = options.materialFrameLabel;
+	if (options.materialFrameId) state.materialFrameId = options.materialFrameId;
+	if (options.materialTemplesLabel) state.materialTemplesLabel = options.materialTemplesLabel;
+	if (options.materialTemplesId) state.materialTemplesId = options.materialTemplesId;
+
+	if (typeof options.bridge !== 'undefined') {
+		state.bridge = clamp(Number(options.bridge) || 5, 2, 10);
+		const bridgeInput = $('#bridge');
+		if (bridgeInput) bridgeInput.value = state.bridge;
+	}
+
+	if (typeof options.lensSize !== 'undefined') {
+		state.lensSize = clamp(Number(options.lensSize) || 5, 1, 10);
+		const lensSizeInput = $('#lensSize');
+		if (lensSizeInput) lensSizeInput.value = state.lensSize;
+	}
+
+	if (options.lensColor) {
+		const lensColorSelect = $('#lensColor');
+		if (lensColorSelect && lensColorSelect.querySelector(`option[value="${options.lensColor}"]`)) {
+			lensColorSelect.value = options.lensColor;
+			state.lensColor = options.lensColor;
+		}
+	}
+
+	if (options.finish) {
+		state.finish = options.finish;
+	}
+
+	if (typeof options.engraveText !== 'undefined') {
+		const text = (options.engraveText ?? '').toString();
+		state.engraveText = text.slice(0, 20);
+		const engraveInput = $('#engraveText');
+		if (engraveInput) engraveInput.value = state.engraveText;
+	}
+
+	if (options.engraveSide) {
+		state.engraveSide = options.engraveSide;
+		const engraveRadio = document.querySelector(
+			`input[name='engraveSide'][value='${state.engraveSide}']`
+		);
+		if (engraveRadio) engraveRadio.checked = true;
+	}
+
+	if (typeof options.price === 'number') {
+		state.price = options.price;
+	}
+
+	updateFinishButtons();
+	applyAll();
+	syncEditQueryParam();
+}
+
+function displaySummary(message) {
+	if (!aiSummaryEl) return;
+	if (message) {
+		aiSummaryEl.textContent = message;
+		aiSummaryEl.classList.remove('hidden');
+	} else {
+		aiSummaryEl.textContent = '';
+		aiSummaryEl.classList.add('hidden');
+	}
+}
+
+function hydrateFromAIStorage() {
+	try {
+		const stored = localStorage.getItem(AI_STORAGE_KEY);
+		if (!stored) return false;
+		const parsed = JSON.parse(stored);
+		if (!parsed?.options) {
+			localStorage.removeItem(AI_STORAGE_KEY);
+			return false;
+		}
+		applyOptionsPayload(parsed.options, { resetEditId: true });
+		displaySummary(parsed.summary || 'Suggestion importée depuis la page Inspiration IA.');
+		localStorage.removeItem(AI_STORAGE_KEY);
+		return true;
+	} catch (error) {
+		console.warn('Failed to hydrate AI preset', error);
+		localStorage.removeItem(AI_STORAGE_KEY);
+		return false;
+	}
+}
+
+function setAiLoading(isLoading) {
+	if (!aiButton) return;
+	aiButton.disabled = isLoading;
+	aiButton.classList.toggle('opacity-50', isLoading);
+	aiButton.classList.toggle('cursor-not-allowed', isLoading);
+	aiButton.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+}
+
+async function requestAIInspiration(promptText) {
+	if (!promptText?.trim()) return;
+	displaySummary('Génération en cours…');
+	localStorage.removeItem(AI_STORAGE_KEY);
+	setAiLoading(true);
+	try {
+		const response = await fetch('/api/ai-lunettes', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ prompt: promptText })
+		});
+		const payload = await response.json().catch(() => null);
+
+		if (response.status === 401) {
+			window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+			return;
+		}
+
+		if (!response.ok || !payload?.ok) {
+			const code = payload?.error || 'ai-generation-failed';
+			throw new Error(
+				code === 'openai-missing-key'
+					? "La fonctionnalité IA n'est pas disponible pour le moment."
+					: 'Impossible de générer automatiquement une configuration.'
+			);
+		}
+
+		applyOptionsPayload(payload.options || {}, { resetEditId: true });
+		displaySummary(payload.summary || 'Inspiration générée automatiquement par IA.');
+	} catch (error) {
+		console.error('AI generation failed', error);
+		displaySummary('');
+		alert(error?.message || 'La génération IA a échoué.');
+	} finally {
+		setAiLoading(false);
+	}
+}
+
 async function loadExistingConfiguration(id) {
 	try {
 		const response = await fetch(`/besoin/lunettes/${id}`);
@@ -402,51 +571,21 @@ async function loadExistingConfiguration(id) {
 			throw new Error(payload?.error || 'lunette-fetch-failed');
 		}
 		const { options } = payload;
-		state.editId = id;
-		state.materialFrameId = options.materialFrameId ?? null;
-		state.materialFrameLabel = options.materialFrameLabel ?? state.materialFrameLabel;
-		const frameSlug =
-			options.materialFrameSlug ??
-			(state.materialFrameId ? materialCodeById[state.materialFrameId] : null);
-		state.materialFrame = frameSlug ?? state.materialFrame;
-		state.materialTemplesId = options.materialTemplesId ?? null;
-		state.materialTemplesLabel = options.materialTemplesLabel ?? state.materialTemplesLabel;
-		const templesSlug =
-			options.materialTemplesSlug ??
-			(state.materialTemplesId ? materialCodeById[state.materialTemplesId] : null);
-		state.materialTemples = templesSlug ?? state.materialTemples;
-		state.bridge = Number(options.bridge ?? state.bridge);
-		state.lensSize = Number(options.lensSize ?? state.lensSize);
-		state.lensColor = options.lensColor ?? state.lensColor;
-		state.finish = options.finish ?? state.finish;
-		state.engraveText = options.engraveText ?? '';
-		state.engraveSide = options.engraveSide ?? 'gauche';
-		state.price = Number(options.price ?? state.price);
-
-		setSelectValue($('#materialFrame'), frameSlug, options.materialFrameId);
-		setSelectValue($('#materialTemples'), templesSlug, options.materialTemplesId);
-
-		const bridgeInput = $('#bridge');
-		if (bridgeInput) bridgeInput.value = state.bridge;
-		const lensSizeInput = $('#lensSize');
-		if (lensSizeInput) lensSizeInput.value = state.lensSize;
-		const lensColorSelect = $('#lensColor');
-		if (lensColorSelect) lensColorSelect.value = state.lensColor;
-		const engraveInput = $('#engraveText');
-		if (engraveInput) engraveInput.value = state.engraveText;
-		const engraveRadio = document.querySelector(
-			`input[name='engraveSide'][value='${state.engraveSide}']`
+		applyOptionsPayload(
+			{
+				...options,
+				materialFrame:
+					options.materialFrameSlug ??
+					options.materialFrame ??
+					(state.materialFrameId ? materialCodeById[state.materialFrameId] : null),
+				materialTemples:
+					options.materialTemplesSlug ??
+					options.materialTemples ??
+					(state.materialTemplesId ? materialCodeById[state.materialTemplesId] : null)
+			},
+			{ setEditId: id }
 		);
-		if (engraveRadio) engraveRadio.checked = true;
-
-		syncMaterialStateFromSelects();
-		state.materialFrameLabel = options.materialFrameLabel ?? state.materialFrameLabel;
-		state.materialTemplesLabel = options.materialTemplesLabel ?? state.materialTemplesLabel;
-		updateFinishButtons();
-		updatePrice();
-		updateProgress();
-		applyAll();
-		syncEditQueryParam();
+		displaySummary('');
 	} catch (error) {
 		console.error('loadExistingConfiguration error', error);
 	}
@@ -455,11 +594,13 @@ async function loadExistingConfiguration(id) {
 async function init() {
 	await loadMaterials();
 	bindUI();
+	displaySummary('');
 	syncMaterialStateFromSelects();
 	await loadSVG();
+	const hydrated = hydrateFromAIStorage();
 	const params = new URLSearchParams(window.location.search);
 	const editParam = params.get('edit');
-	if (editParam) {
+	if (editParam && !hydrated) {
 		state.editId = editParam;
 		await loadExistingConfiguration(editParam);
 	}

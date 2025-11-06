@@ -7,6 +7,9 @@ const {
 	title = 'TaVue',
 	showHeader = true,
 	showFooter = true,
+	showPromoBar = true,
+	promoMessage = '✨ Livraison offerte et gravure personnalisée sur chaque commande cette semaine.',
+	promoHref = '/configurateur',
 	bodyClass = '',
 	mainClass = ''
 } = Astro.props;
@@ -25,6 +28,28 @@ const {
 	</head>
 	<body class={`bg-tavue-anthracite font-inter text-tavue-off-white antialiased ${bodyClass}`}>
 		{showHeader && <Header />}
+		{showPromoBar && (
+			<div class="bg-gradient-to-r from-[#1F1A12] via-[#2A2115] to-[#1C1A17] text-[#F2E7D5]">
+				<div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-2 text-xs md:text-sm">
+					<div class="flex items-center gap-2">
+						<span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#D1B17A] text-[0.65rem] font-semibold text-[#1E160C]">
+							+
+						</span>
+						<p class="font-medium tracking-wide">{promoMessage}</p>
+					</div>
+					<a
+						href={promoHref}
+						class="inline-flex items-center gap-1 rounded-full border border-[#D1B17A]/40 bg-[#2A2016] px-3 py-1 font-semibold text-[#F4E5C7] transition hover:border-[#D1B17A]"
+					>
+						En profiter
+						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 3.5h7v7"></path>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4.75 11.25 11.5 4.5"></path>
+						</svg>
+					</a>
+				</div>
+			</div>
+		)}
 		<main class={mainClass}>
 			<slot />
 		</main>
